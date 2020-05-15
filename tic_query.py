@@ -1,10 +1,10 @@
 import os
 import numpy as np
 import astroquery.mast
-from spexodisks.autostar.star_names import ref_dir, star_name_format, StringStarName
-from spexodisks.autostar.table_read import num_format
-from spexodisks.autostar.simbad_query import SimbadLib, StarDict
-from spexodisks.autostar.object_params import ObjectParams, set_single_param
+from autostar.star_names import ref_dir, star_name_format, StringStarName
+from autostar.table_read import num_format
+from autostar.simbad_query import SimbadLib, StarDict
+from autostar.object_params import ObjectParams, set_single_param
 
 
 class TicQuery:
