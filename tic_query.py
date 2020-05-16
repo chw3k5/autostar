@@ -20,6 +20,7 @@ class TicQuery:
         self.tic_ref_data = None
         self.ref_data_hypatia_handle = None
         self.available_handles = None
+        self.new_data_count = 0
         if simbad_lib is None:
             self.simbad_lib = SimbadLib()
         else:
@@ -100,6 +101,7 @@ class TicQuery:
                 print("  Tess Input Catalog data found!")
         # we write out data when the tic_dict is empty. The empty tic_dict is an indication to not repeat this search
         self.new_tic_data.append((requested_star_names_dict, tic_params_dict))
+        return tic_params_dict
 
     def select_name(self, star_names_dict):
         # string_name, name_type, star_num
@@ -137,7 +139,7 @@ class TicQuery:
                 break
         return requested_tic_dict
 
-    def new_data_update_loop(self, requested_star_names_dict):
+    def new_data_update_loop(self, requested_star_names_dict, update_ref=True):
         """
         Check to see if a star is in the reference data. If not, do database a query. If data is found, write it out
         to the reference data.
@@ -159,16 +161,20 @@ class TicQuery:
             if hypatia_handle in self.available_handles:
                 return self.ref_data_hypatia_handle[hypatia_handle]
             else:
-                self.get_tic_data(requested_star_names_dict=requested_star_names_dict)
-                if self.new_tic_data:
-                    _, requested_tic_dict = self.new_tic_data[0]
-                    self.write_data(append_mode=True)
-                    self.load_ref()
-                    return requested_tic_dict
-        return ObjectParams()
+                requested_tic_dict = self.get_tic_data(requested_star_names_dict=requested_star_names_dict)
+                self.new_data_count += 1
+                if update_ref:
+                    self.update_ref()
+                return requested_tic_dict
+        return {}
 
-    def get_object_params(self, requested_star_names_dict):
-        requested_dict = self.new_data_update_loop(requested_star_names_dict=requested_star_names_dict)
+    def update_ref(self):
+        self.write_data(append_mode=True)
+        self.load_ref()
+
+    def get_object_params(self, requested_star_names_dict, update_ref=True):
+        requested_dict = self.new_data_update_loop(requested_star_names_dict=requested_star_names_dict,
+                                                   update_ref=update_ref)
         ref_str = "Tess Input Catalog"
         params_dicts = {}
         param_names = set()
@@ -279,7 +285,8 @@ class TicQuery:
         self.tic_ref_data = None
         self.new_tic_data = []
         if self.verbose:
-            print("Writing Tess Input Catalog data to reference file:", self.reference_file_name)
+            print(self.new_data_count, " new TIC data requests this run.")
+            print("Writing Tess Input Catalog data to reference file:", self.reference_file_name, "\n")
 
     def load_ref(self):
         self.tic_ref_data = []
