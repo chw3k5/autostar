@@ -5,10 +5,10 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
 from astroquery.gaia import Gaia
-from spexodisks.autostar.table_read import row_dict
-from spexodisks.autostar.star_names import ref_dir, star_name_format, StarName, StringStarName, gaia_dr2_parallax_offset
-from spexodisks.autostar.simbad_query import SimbadLib, StarDict
-from spexodisks.autostar.object_params import ObjectParams, set_single_param
+from autostar.table_read import row_dict
+from star_names import ref_dir, star_name_format, StarName, StringStarName, gaia_dr2_parallax_offset
+from autostar.simbad_query import SimbadLib, StarDict
+from autostar.object_params import ObjectParams, set_single_param
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
 

@@ -5,10 +5,10 @@ from collections import namedtuple, UserDict
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
-from spexodisks.autostar.star_names import star_name_format, sb_ref_file_name, sb_desired_names, optimal_star_name, \
-    star_name_preference, StringStarName
-from spexodisks.autostar.table_read import row_dict
-from spexodisks.autostar.bad_stars import BadStars
+from star_names import star_name_format, sb_ref_file_name, sb_desired_names, optimal_star_name, star_name_preference, \
+    StringStarName
+from autostar.table_read import row_dict
+from autostar.bad_stars import BadStars
 
 
 Star_ID = namedtuple("Star_ID", "catalog type id")

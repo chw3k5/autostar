@@ -1,5 +1,5 @@
 from typing import NamedTuple, Union, Optional
-from spexodisks.autostar.simbad_query import StarDict
+from autostar.simbad_query import StarDict
 
 
 class ObjectParams(StarDict):

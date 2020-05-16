@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import astroquery.mast
-from autostar.star_names import ref_dir, star_name_format, StringStarName
+from star_names import ref_dir, star_name_format, StringStarName
 from autostar.table_read import num_format
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
@@ -19,6 +19,7 @@ class TicQuery:
         self.header_star_name_types = set()
         self.tic_ref_data = None
         self.ref_data_hypatia_handle = None
+        self.available_handles = None
         if simbad_lib is None:
             self.simbad_lib = SimbadLib()
         else:
@@ -147,19 +148,24 @@ class TicQuery:
         :param requested_star_names_dict:
         :return: requested_tic_dict
         """
-
-        if set(requested_star_names_dict.keys()) & self.allowed_names == set():
-            return {}
-        else:
+        if isinstance(requested_star_names_dict, (str, tuple)):
+            hypatia_handle, requested_star_names_dict = self.simbad_lib.get_star_dict(requested_star_names_dict)
+        hypatia_handle, requested_star_names_dict = self.simbad_lib.get_star_dict_with_star_dict(requested_star_names_dict)
+        if self.ref_data_hypatia_handle is None:
+            self.make_ref_data_look_up_dicts()
+            # self.ref_data_hypatia_handle = None
+        if set(requested_star_names_dict.keys()) & self.allowed_names != set():
             self.new_tic_data = []
-            requested_tic_dict = self.find_tic_dict(requested_star_names_dict=requested_star_names_dict)
-            if requested_tic_dict is None:
+            if hypatia_handle in self.available_handles:
+                return self.ref_data_hypatia_handle[hypatia_handle]
+            else:
                 self.get_tic_data(requested_star_names_dict=requested_star_names_dict)
                 if self.new_tic_data:
                     _, requested_tic_dict = self.new_tic_data[0]
                     self.write_data(append_mode=True)
                     self.load_ref()
-            return requested_tic_dict
+                    return requested_tic_dict
+        return ObjectParams()
 
     def get_object_params(self, requested_star_names_dict):
         requested_dict = self.new_data_update_loop(requested_star_names_dict=requested_star_names_dict)
@@ -212,9 +218,11 @@ class TicQuery:
         if self.tic_ref_data is None:
             self.load_ref()
         self.ref_data_hypatia_handle = {}
+        self.available_handles = set()
         for star_names_dict, tic_dic in self.tic_ref_data:
             hypatia_handle, _star_name_dict = self.simbad_lib.get_star_dict_with_star_dict(star_names_dict)
             self.ref_data_hypatia_handle[hypatia_handle] = tic_dic
+            self.available_handles.add(hypatia_handle)
 
     def write_data(self, append_mode=True):
         """
@@ -297,25 +305,5 @@ class TicQuery:
 
 
 if __name__ == "__main__":
-    test_data = [{},  # empty dictionary
-                 {'gaia dr2': (26030900483984152064,)},  # wrong star name
-                 {'tyc': (5819, 1255, 1),  # real values
-                  '2mass': 'j22531672-1415489',
-                  'gj': (876, 'a'),
-                  'gaia dr2': (2603090003484152064,),
-                  'bd': ('-', 15, 6290),
-                  'hip': (113020,)},
-                 {'ids': '14328-6025 b',  # null values
-                  'tyc': (9007, 5848, 1),
-                  'gj': (559, 'b'),
-                  'cd': ('-', 60, 5293, 'b'),
-                  'hd': (128621,),
-                  'hr': (5460,),
-                  'hip': (71681,),
-                  '*': 'alf cen b'},
-                 {'hip': (3829,),  # two column and nans values
-                  '2mass': 'j00490996+0523173'}]
-
-    tq = TicQuery(verbose=True)
-    for a_dict in test_data:
-        tq.get_tic_data(a_dict)
+    tq = TicQuery(simbad_lib=None, reference_file_name=None, verbose=True)
+    one_star_tic_data = tq.new_data_update_loop("HD 325367")

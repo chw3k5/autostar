@@ -1,6 +1,6 @@
 import os
-from spexodisks.autostar.star_names import ref_dir, star_name_format, StringStarName
-from spexodisks.autostar.simbad_query import SimbadLib
+from star_names import ref_dir, star_name_format, StringStarName
+from autostar.simbad_query import SimbadLib
 
 
 class CheckStarNames:

@@ -1,6 +1,6 @@
 import os
-from spexodisks.autostar.star_names import ref_dir, star_name_format, StringStarName
-from spexodisks.autostar.table_read import row_dict
+from star_names import ref_dir, star_name_format, StringStarName
+from autostar.table_read import row_dict
 
 
 class BadStars:
