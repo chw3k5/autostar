@@ -157,7 +157,6 @@ class TicQuery:
             self.make_ref_data_look_up_dicts()
             # self.ref_data_hypatia_handle = None
         if set(requested_star_names_dict.keys()) & self.allowed_names != set():
-            self.new_tic_data = []
             if hypatia_handle in self.available_handles:
                 return self.ref_data_hypatia_handle[hypatia_handle]
             else:
