@@ -10,7 +10,7 @@ from autostar.object_params import ObjectParams, set_single_param
 class TicQuery:
     def __init__(self, simbad_lib=None, reference_file_name=None, verbose=True):
         self.verbose = verbose
-        self.tic_data_wanted = {"Teff", "e_Teff", "logg", "e_logg", "Mass", 'e_Mass', "Rad", "e_Rad"}
+        self.tic_data_wanted = {"Teff", "e_Teff", "logg", "e_logg", "mass", 'e_mass', "rad", "e_rad"}
         self.units_dict = {"Teff": "K", "logg": "cgs", "mass": "M_sun", "rad": "R_sun"}
         self.params_with_units = set(self.units_dict.keys())
         self.name_preference = ["gaia dr2", "2mass", "tyc", "hip"]
@@ -148,6 +148,8 @@ class TicQuery:
         reference file.
 
         :param requested_star_names_dict:
+        :param update_ref: bool - True, update the references files with new data when found. Turn to False for
+                           faster processing of new data by updating the reference after a batch from an out scope.
         :return: requested_tic_dict
         """
         if isinstance(requested_star_names_dict, (str, tuple)):
@@ -312,4 +314,4 @@ class TicQuery:
 
 if __name__ == "__main__":
     tq = TicQuery(simbad_lib=None, reference_file_name=None, verbose=True)
-    one_star_tic_data = tq.new_data_update_loop("HD 325367")
+    one_star_tic_data = tq.new_data_update_loop("TYC 4767-00765-1")
