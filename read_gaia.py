@@ -35,6 +35,7 @@ class GaiaLib:
                                       "source_id"}
 
     def batch_update(self, dr_number, simbad_formatted_names_list):
+        dr_number = int(dr_number)
         gaia_ref = self.__getattribute__('gaiadr' + str(dr_number) + "_ref")
         self.gaia_query.astroquery_source(simbad_formatted_name_list=simbad_formatted_names_list, dr_num=dr_number)
         gaia_star_ids = set(self.gaia_query.star_dict.keys())
