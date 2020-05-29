@@ -10,7 +10,10 @@ from autostar.object_params import ObjectParams, set_single_param
 class TicQuery:
     def __init__(self, simbad_lib=None, reference_file_name=None, verbose=True):
         self.verbose = verbose
-        self.tic_data_wanted = {"Teff", "e_Teff", "logg", "e_logg", "mass", 'e_mass', "rad", "e_rad"}
+        self.primary_values = {"Teff", "logg", "mass", "rad"}
+        self.error_values = {"e_" + primary_value for primary_value in self.primary_values}
+        self.error_to_primary_values = {"e_" + primary_value: primary_value for primary_value in self.primary_values}
+        self.tic_data_wanted = self.primary_values | self.error_values
         self.units_dict = {"Teff": "K", "logg": "cgs", "mass": "M_sun", "rad": "R_sun"}
         self.params_with_units = set(self.units_dict.keys())
         self.name_preference = ["gaia dr2", "2mass", "tyc", "hip"]
@@ -99,6 +102,12 @@ class TicQuery:
                 print("  Tess Input Catalog data not found for star_dict =!", requested_star_names_dict)
             else:
                 print("  Tess Input Catalog data found!")
+        # sometimes there is an error available but not the primary value (annoying), we delete those cases here
+        tic_params_dict_keys = set(tic_params_dict.keys())
+        for error_type in self.error_values & tic_params_dict_keys:
+            value_type = self.error_to_primary_values[error_type]
+            if value_type not in tic_params_dict_keys:
+                del tic_params_dict[error_type]
         # we write out data when the tic_dict is empty. The empty tic_dict is an indication to not repeat this search
         self.new_tic_data.append((requested_star_names_dict, tic_params_dict))
         return tic_params_dict

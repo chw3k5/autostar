@@ -6,7 +6,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
 from star_names import star_name_format, sb_ref_file_name, sb_desired_names, optimal_star_name, star_name_preference, \
-    StringStarName
+    StringStarName, StarName
 from autostar.table_read import row_dict
 from autostar.bad_stars import BadStars
 
@@ -155,19 +155,43 @@ class SimbadLib:
 
     def get_star_dict_with_star_dict(self, input_star_names_dict):
         name_types_found = []
+        found_hypatia_names = []
+        new_hypatia_names = []
         hypatia_name = None
         for name_type in input_star_names_dict.keys():
             for star_id in list(input_star_names_dict[name_type]):
-                hypatia_name = (name_type, star_id)
+                hypatia_name = StarName(name_type, star_id)
                 requested_star_names_dict = self.simbad_ref.get_star_dict(hypatia_name)
                 if requested_star_names_dict is None:
                     name_types_found.append(False)
+                    new_hypatia_names.append(hypatia_name)
                 else:
                     name_types_found.append(True)
+                    found_hypatia_names.append(hypatia_name)
         if all(name_types_found):
+            # if all the names are found, any name will work.
             return self.get_star_dict(hypatia_name)
         elif hypatia_name is not None:
-            self.simbad_ref.add_star_dicts(star_dict_list=[input_star_names_dict])
+            # this is just a clever way to make sure we are not acting on an empty dictionary
+            # and that at least one hypatia_name is in the list new_hypatia_names
+            max_names_dict = StarDict()
+            # names from the input dictionary
+            for name_type in input_star_names_dict.keys():
+                for star_id in input_star_names_dict[name_type]:
+                    max_names_dict[name_type] = star_id
+            # names from the reference data
+            if found_hypatia_names:
+                _hypatia_handle, existing_names_dict = self.get_star_dict(found_hypatia_names[0])
+                for name_type in existing_names_dict:
+                    for star_id in existing_names_dict[name_type]:
+                        max_names_dict[name_type] = star_id
+            # names of the name types that were not found
+            for new_hypatia_name in new_hypatia_names:
+                hypatia_handle, simbad_search_star_names_dict = self.get_star_dict(new_hypatia_name)
+                for name_type in simbad_search_star_names_dict:
+                    for star_id in simbad_search_star_names_dict[name_type]:
+                        max_names_dict[name_type] = star_id
+            self.simbad_ref.add_star_dicts([max_names_dict])
             return self.get_star_dict_with_star_dict(input_star_names_dict)
         else:
             raise KeyError("input_star_names_dict was None or empty.")
@@ -407,7 +431,8 @@ class StarDict(UserDict):
 
 if __name__ == "__main__":
     simbad_tester = SimbadQuery()
-    simbad_tester.get_name_data(simbad_name_list=["HD 1237a"])
+    simbad_tester.get_name_data(simbad_name_list=["[FLM99] Star F"])
+    found_stars = simbad_tester.stars_found
     # sr = SimbadRef()
     # sr.load()
     # sr.make_lookup()
