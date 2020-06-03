@@ -13,6 +13,7 @@ class TicQuery:
         self.primary_values = {"Teff", "logg", "mass", "rad"}
         self.error_values = {"e_" + primary_value for primary_value in self.primary_values}
         self.error_to_primary_values = {"e_" + primary_value: primary_value for primary_value in self.primary_values}
+        self.primary_values_to_error = {primary_value: "e_" + primary_value for primary_value in self.primary_values}
         self.tic_data_wanted = self.primary_values | self.error_values
         self.units_dict = {"Teff": "K", "logg": "cgs", "mass": "M_sun", "rad": "R_sun"}
         self.params_with_units = set(self.units_dict.keys())
@@ -257,14 +258,12 @@ class TicQuery:
             self.load_ref()
             data_to_write.extend(self.tic_ref_data)
         data_to_write.extend(self.new_tic_data)
-        for star_dict, tic_dict in self.new_tic_data:
-            # add any new star name types to the header for the write out file
-            self.header_star_name_types |= set(star_dict.keys())
-        # subtract name types we can not process that may come from the NatCat or AllStarData classes
-        self.header_star_name_types -= {'exo_org_name', 'hypatia_name', 'star_name_index'}
         # get the column names for this data
-        column_names = sorted(self.header_star_name_types)
-        column_names.extend(sorted(self.tic_data_wanted))
+        column_names = self.name_preference[:]
+        for prime_value_name in sorted(self.primary_values):
+            column_names.append(prime_value_name)
+            error_value_name = self.primary_values_to_error[prime_value_name]
+            column_names.append(error_value_name)
         # make the output's header
         header = ""
         for column_name in column_names:
@@ -274,7 +273,7 @@ class TicQuery:
         body = []
         for star_dict, tic_dict in data_to_write:
             single_line = ""
-            name_type_this_star = set(star_dict.keys())
+            name_type_this_star = set(star_dict.keys()) & self.allowed_names
             data_types_this_star = set(tic_dict.keys())
             for column_name in column_names:
                 if column_name in name_type_this_star:

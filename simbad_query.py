@@ -40,11 +40,11 @@ def get_single_name_data(formatted_name):
 
 
 def simbad_to_handle(simbad_formatted_name):
-    return simbad_formatted_name.replace(" ", "_").replace("*", "star")
+    return simbad_formatted_name.replace(" ", "_").replace("*", "star").replace("+", "plus")
 
 
 def handle_to_simbad(handle):
-    return handle.replace("star", "*").replace("_", " ")
+    return handle.replace("star", "*").replace("_", " ").replace("plus", "+")
 
 
 def make_hypatia_handle(star_names_dict):
@@ -212,7 +212,7 @@ class SimbadQuery:
             self.small_sleep_time = 0
         else:
             self.big_sleep_time = 30
-            self.small_sleep_time = 0.25
+            self.small_sleep_time = 0.30
         self.coord_star_info = None
 
     def get_name_data(self, simbad_name_list=None):
@@ -276,7 +276,6 @@ class SimbadRef:
             self.ref_file_name = sb_ref_file_name
         else:
             self.ref_file_name = ref_file_name
-        self.ref_list = None
         self.star_dict_list = None
         self.available_name_types = None
         self.lookup_dicts = None
@@ -284,12 +283,25 @@ class SimbadRef:
 
     def load(self):
         self.available_name_types = set()
-        if os.path.exists(self.ref_file_name):
-            self.ref_list = row_dict(self.ref_file_name, null_value="")
-        else:
-            self.ref_list = []
         self.star_dict_list = []
-        for ref_dict in list(self.ref_list):
+        if os.path.exists(self.ref_file_name):
+            with open(self.ref_file_name, 'r') as f:
+                for line in f.readlines():
+                    star_dict = StarDict()
+                    ref_line_list = line.strip().split("|")
+                    for string_name in ref_line_list:
+                        name_type, star_id = star_name_format(string_name)
+                        star_dict[name_type] = star_id
+                    self.star_dict_list.append(star_dict)
+
+    def load_csv(self):
+        self.available_name_types = set()
+        if os.path.exists(self.ref_file_name):
+            ref_list = row_dict(self.ref_file_name, null_value="")
+        else:
+            ref_list = []
+        self.star_dict_list = []
+        for ref_dict in list(ref_list):
             star_dict = StarDict()
             for name_type in ref_dict.keys():
                 if "_other" in name_type:
@@ -367,6 +379,25 @@ class SimbadRef:
         self.make_lookup()
 
     def write(self, write_name=None):
+        if write_name is None:
+            write_name = self.ref_file_name
+        body = []
+        # write the star_name reference data
+        for star_dict in self.star_dict_list:
+            a_line = ""
+            for name_type in sorted(star_dict.keys()):
+                names_list_this_type = sorted([StringStarName((name_type, star_id)).string_name
+                                               for star_id in star_dict[name_type]], reverse=True)
+                for string_name in names_list_this_type:
+                    a_line += string_name + "|"
+
+            body.append(a_line[:-1] + "\n")
+        # The file writing code
+        with open(write_name, 'w') as f:
+            for a_line in body:
+                f.write(a_line)
+
+    def write_csv(self, write_name=None):
         if write_name is None:
             write_name = self.ref_file_name
         # write the header
