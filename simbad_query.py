@@ -40,11 +40,11 @@ def get_single_name_data(formatted_name):
 
 
 def simbad_to_handle(simbad_formatted_name):
-    return simbad_formatted_name.replace(" ", "_").replace("*", "star").replace("+", "plus")
+    return simbad_formatted_name.replace(" ", "_").replace("*", "star").replace("+", "plus").replace("2MASS", "TWOMASS")
 
 
 def handle_to_simbad(handle):
-    return handle.replace("star", "*").replace("_", " ").replace("plus", "+")
+    return handle.replace("star", "*").replace("_", " ").replace("plus", "+").replace("TWOMASS", "2MASS")
 
 
 def make_hypatia_handle(star_names_dict):
