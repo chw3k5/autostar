@@ -241,6 +241,7 @@ class SimbadQuery:
                 sleep(self.small_sleep_time)
         self.count = simbad_count
 
+
     def get_coord_data(self, simbad_name_list=None):
         self.coord_star_info = {}
         len_names_list = len(simbad_name_list)
