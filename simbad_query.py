@@ -462,7 +462,7 @@ class StarDict(UserDict):
 
 if __name__ == "__main__":
     simbad_tester = SimbadQuery()
-    simbad_tester.get_name_data(simbad_name_list=["[FLM99] Star F"])
+    simbad_tester.get_name_data(simbad_name_list=["nu Oph"])
     found_stars = simbad_tester.stars_found
     # sr = SimbadRef()
     # sr.load()
