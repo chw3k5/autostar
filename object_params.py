@@ -2,32 +2,19 @@ from typing import NamedTuple, Union, Optional
 from autostar.simbad_query import StarDict
 
 
-# params_format_dict "lower": "desired"
-params_format_dict = {"teff": "Teff"}
-
-
-def format_key(key):
-    key_str = str(key)
-    key_lower = key_str.lower()
-    if key_lower in params_format_dict.keys():
-        return params_format_dict[key_lower]
-    return key_lower
-
-
 class ObjectParams(StarDict):
     def __setitem__(self, key, value):
-        key = format_key(key)
         if not self.__contains__(key):
             if isinstance(value, set):
-                self.data[key] = value
+                self.data[str(key)] = value
             elif isinstance(value, SingleParam):
-                self.data[key] = {value}
+                self.data[str(key)] = {value}
             else:
                 raise ValueError("SingleParam tuple or set is required")
         if isinstance(value, set):
-            self.data[key] |= value
+            self.data[str(key)] |= value
         elif isinstance(value, SingleParam):
-            self.data[key].add(value)
+            self.data[str(key)].add(value)
         else:
             raise ValueError("SingleParam tuple or set is required")
 
