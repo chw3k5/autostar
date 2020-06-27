@@ -1,5 +1,6 @@
 import os
-from star_names import ref_dir, star_name_format, StringStarName
+from ref import ref_dir
+from star_names import star_name_format, StringStarName
 
 
 class NameCorrection:

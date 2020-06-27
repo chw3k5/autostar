@@ -6,7 +6,8 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
 from astroquery.gaia import Gaia
 from autostar.table_read import row_dict
-from star_names import ref_dir, star_name_format, StarName, StringStarName, gaia_dr2_parallax_offset
+from ref import ref_dir, gaia_dr2_parallax_offset
+from star_names import star_name_format, StarName, StringStarName
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
 
