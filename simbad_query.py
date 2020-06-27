@@ -5,7 +5,8 @@ from collections import namedtuple, UserDict
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
-from star_names import star_name_format, sb_ref_file_name, sb_desired_names, optimal_star_name, star_name_preference, \
+from ref import sb_ref_file_name, sb_desired_names
+from star_names import star_name_format, optimal_star_name, star_name_preference, \
     StringStarName, StarName
 from autostar.table_read import row_dict
 from autostar.bad_stars import BadStars
