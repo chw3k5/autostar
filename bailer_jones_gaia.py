@@ -231,17 +231,18 @@ class GaiaQuery:
         self.gaia_dr1_data = None
         self.gaia_dr2_data = None
 
-        self.astro_query_dr1_params = ["ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id", "parallax",
+        self.astro_query_dr1_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id", "parallax",
                                        "parallax_error",
                                        "pmra", "pmra_error", "pmdec", "pmdec_error", "duplicated_source",
-                                       "phot_g_mean_flux", "phot_g_mean_flux_error", "phot_g_mean_mag"]
-        self.astro_query_dr2_params = ["ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id",
+                                       "phot_g_mean_flux", "phot_g_mean_flux_error", "phot_g_mean_mag"}
+        self.astro_query_dr2_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id",
                                        "parallax", "parallax_error",
                                        "pmra", "pmra_error", "pmdec", "pmdec_error", "duplicated_source",
                                        "phot_g_mean_flux", "phot_g_mean_flux_error",
                                        "phot_g_mean_mag",
                                        "radial_velocity", "radial_velocity_error",
-                                       "teff_val"]
+                                       "teff_val",
+                                       "r_est", "r_lo", "r_hi"}
         self.param_to_units = {"ra": "degrees", "ra_error": "mas", 'dec': 'degrees', "dec_error": 'mas',
                                "ref_epoch": 'Julian Years', 'parallax': 'mas', "parallax_error": "mas",
                                "pmra": 'mas/year', "pmra_error": "mas/year",
@@ -250,7 +251,6 @@ class GaiaQuery:
                                "radial_velocity": "km/s", "teff_val": "K",
                                "dist": "[pc]", "dist_error": "[pc]"}
         self.params_with_units = set(self.param_to_units.keys())
-
 
     def astroquery_get_job(self, job, dr_num=2):
         while job._phase != "COMPLETED":
@@ -306,21 +306,26 @@ class GaiaQuery:
         list_of_sub_lists.append(sub_list)
         self.star_dict = {}
         for sub_list in list_of_sub_lists:
-            job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source WHERE source_id=" + str(sub_list[0])
+            if dr_num == 2:
+                job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source AS g, " + \
+                           "external.gaiadr2_geometric_distance AS d " + \
+                           "WHERE g.source_id=" + str(sub_list[0]) + " AND d.source_id = g.source_id "
+            else:
+                job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source WHERE source_id=" + str(sub_list[0])
             if len(sub_list) > 1:
                 for list_index in range(1, len(sub_list)):
                     job_text += " OR source_id=" + str(sub_list[list_index])
             job = Gaia.launch_job_async(job_text)
-            
+
             sources_dict = self.astroquery_get_job(job, dr_num=dr_num)
             self.star_dict.update({(gaia_id_int,): sources_dict[gaia_id_int] for gaia_id_int in sources_dict.keys()})
 
     def astroquery_cone(self, ra_icrs, dec_icrs, radius_deg=1.0):
         # gaia_coord = convert_to_gaia_dr2_coord(ra_icrs, dec_icrs)
 
-        job_text = "SELECT * FROM gaiadr2.gaia_source WHERE " +\
-                   "CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec)," +\
-                   "CIRCLE('ICRS'," + str(ra_icrs) + "," + str(dec_icrs) + "," + str(radius_deg) +"))=1;"
+        job_text = "SELECT * FROM gaiadr2.gaia_source WHERE " + \
+                   "CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec)," + \
+                   "CIRCLE('ICRS'," + str(ra_icrs) + "," + str(dec_icrs) + "," + str(radius_deg) + "))=1;"
 
         job = Gaia.launch_job_async(job_text)
         sources_dict = self.astroquery_get_job(job)
