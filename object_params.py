@@ -29,7 +29,7 @@ class ObjectParams(StarDict):
 class SingleParam(NamedTuple):
     """ Represents all the attributes for a single parameter value."""
     value: Union[float, int, str]
-    err: Optional[Union[float, int, str]] = None
+    err: Optional[Union[float, int, str, tuple]] = None
     ref: Optional[str] = None
     units: Optional[str] = None
     notes: Optional[str] = None

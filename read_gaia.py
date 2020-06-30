@@ -6,12 +6,19 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
 from astroquery.gaia import Gaia
 from autostar.table_read import row_dict
-from ref import ref_dir, gaia_dr2_parallax_offset
+from ref import ref_dir
 from star_names import star_name_format, StarName, StringStarName
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
+
+def simple_job_text(dr_num, sub_list):
+    job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source WHERE source_id=" + str(sub_list[0])
+    if len(sub_list) > 1:
+        for list_index in range(1, len(sub_list)):
+            job_text += " OR source_id=" + str(sub_list[list_index])
+    return job_text
 
 
 class GaiaLib:
@@ -34,6 +41,9 @@ class GaiaLib:
 
         self.object_params_to_trim = {"ra", "ra_error", 'dec', "dec_error", 'ref_epoch', "duplicated_source",
                                       "source_id"}
+
+        self.special_case_params = {"r_est", "r_lo", 'r_hi',
+                                    "teff_val", "teff_percentile_upper", 'teff_percentile_lower'}
 
     def batch_update(self, dr_number, simbad_formatted_names_list):
         dr_number = int(dr_number)
@@ -76,6 +86,7 @@ class GaiaLib:
             gaia_ref.add_ref({gaia_star_id}, gaia_params_dict)
             gaia_ref.save()
             gaia_ref.load()
+            gaia_ref.make_lookup()
             return self.get_single_dr_number_data(gaia_hypatia_name)
 
     def get(self, hypatia_name):
@@ -94,14 +105,43 @@ class GaiaLib:
             dr_number = int(gaia_name_type.replace("gaia dr", "").strip())
             _gaia_ids, gaia_params_dict = gaia_params_dicts[gaia_hypatia_name]
             gaia_params_dict_keys = set(gaia_params_dict.keys())
-            if 'parallax' in gaia_params_dict_keys:
-                if dr_number == 2:
-                    gaia_params_dict["parallax"] = gaia_params_dict["parallax"] + gaia_dr2_parallax_offset
-                gaia_params_dict['dist'] = 1.0 / (float(gaia_params_dict['parallax']) * 0.001)
             ref_str = "Gaia Data Release " + str(dr_number)
             params_dicts = {}
             param_names_found = set()
-            for param_key in gaia_params_dict_keys:
+            # handling for the distance from the Bailer-Jones Catalog
+            if "r_est" in gaia_params_dict_keys:
+                params_dicts['dist'] = {}
+                param_names_found.add('dist')
+                params_dicts['dist']['value'] = gaia_params_dict["r_est"]
+                params_dicts['dist']['ref'] = "Bailer-Jones et al. (2018)"
+                params_dicts['dist']['units'] = self.gaia_query.param_to_units["r_est"]
+                if "r_hi" in gaia_params_dict_keys:
+                    upper_error = gaia_params_dict["r_hi"] - gaia_params_dict["r_est"]
+                else:
+                    upper_error = None
+                if "r_lo" in gaia_params_dict_keys:
+                    lower_error = gaia_params_dict["r_lo"] - gaia_params_dict["r_est"]
+                else:
+                    lower_error = None
+                if lower_error is not None or upper_error is not None:
+                    params_dicts['dist']['err'] = (lower_error, upper_error)
+            if "teff_val" in gaia_params_dict_keys:
+                params_dicts['Teff'] = {}
+                param_names_found.add('Teff')
+                params_dicts['Teff']['value'] = gaia_params_dict["teff_val"]
+                params_dicts['Teff']['ref'] = ref_str
+                params_dicts['Teff']['units'] = self.gaia_query.param_to_units["teff_val"]
+                if "teff_percentile_upper" in gaia_params_dict_keys:
+                    upper_error = gaia_params_dict["teff_percentile_upper"] - gaia_params_dict["teff_val"]
+                else:
+                    upper_error = None
+                if "teff_percentile_lower" in gaia_params_dict_keys:
+                    lower_error = gaia_params_dict["teff_percentile_lower"] - gaia_params_dict["teff_val"]
+                else:
+                    lower_error = None
+                if lower_error is not None or upper_error is not None:
+                    params_dicts['Teff']['err'] = (lower_error, upper_error)
+            for param_key in gaia_params_dict_keys - self.special_case_params:
                 if "_error" in param_key:
                     param_name = param_key.replace("_error", "")
                     if param_name not in param_names_found:
@@ -120,10 +160,6 @@ class GaiaLib:
                     if param_key in self.gaia_query.params_with_units:
                         params_dicts[param_key]['units'] = self.gaia_query.param_to_units[param_key]
             param_names = set(params_dicts.keys()) - self.object_params_to_trim
-            if 'teff_val' in param_names:
-                params_dicts["Teff"] = params_dicts["teff_val"]
-                param_names.remove("teff_val")
-                param_names.add("Teff")
             for param_name in param_names:
                 new_object_params[param_name] = set_single_param(param_dict=params_dicts[param_name])
         return new_object_params
@@ -231,26 +267,28 @@ class GaiaQuery:
         self.gaia_dr1_data = None
         self.gaia_dr2_data = None
 
-        self.astro_query_dr1_params = ["ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id", "parallax",
+        self.astro_query_dr1_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id", "parallax",
                                        "parallax_error",
                                        "pmra", "pmra_error", "pmdec", "pmdec_error", "duplicated_source",
-                                       "phot_g_mean_flux", "phot_g_mean_flux_error", "phot_g_mean_mag"]
-        self.astro_query_dr2_params = ["ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id",
+                                       "phot_g_mean_flux", "phot_g_mean_flux_error", "phot_g_mean_mag"}
+        self.astro_query_dr2_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id",
                                        "parallax", "parallax_error",
                                        "pmra", "pmra_error", "pmdec", "pmdec_error", "duplicated_source",
                                        "phot_g_mean_flux", "phot_g_mean_flux_error",
                                        "phot_g_mean_mag",
                                        "radial_velocity", "radial_velocity_error",
-                                       "teff_val"]
+                                       "teff_val", "teff_percentile_lower", "teff_percentile_upper",
+                                       "r_est", "r_lo", "r_hi"}
         self.param_to_units = {"ra": "degrees", "ra_error": "mas", 'dec': 'degrees', "dec_error": 'mas',
                                "ref_epoch": 'Julian Years', 'parallax': 'mas', "parallax_error": "mas",
                                "pmra": 'mas/year', "pmra_error": "mas/year",
                                "pmdec": 'mas/year', "pmdec_error": "mas/year",
                                "phot_g_mean_flux": "e-/s", "phot_g_mean_mag": 'mag',
-                               "radial_velocity": "km/s", "teff_val": "K",
-                               "dist": "[pc]", "dist_error": "[pc]"}
+                               "radial_velocity": "km/s",
+                               "teff_val": "K", "teff_percentile_lower": "K", "teff_percentile_upper": "K",
+                               "dist_parallax": "[pc]", "dist_parallax_error": "[pc]",
+                               "r_est": "[pc]", "r_lo": "[pc]", "r_hi": "[pc]"}
         self.params_with_units = set(self.param_to_units.keys())
-
 
     def astroquery_get_job(self, job, dr_num=2):
         while job._phase != "COMPLETED":
@@ -266,7 +304,8 @@ class GaiaQuery:
             raise KeyError("The given Gaia Data Release number " + str(dr_num) + " is not of the format.")
 
         for index in range(len(raw_results.columns["source_id"])):
-            params_dict = {param: raw_results.columns[param][index] for param in query_params
+            available_params = set(raw_results.columns)
+            params_dict = {param: raw_results.columns[param][index] for param in available_params & query_params
                            if not np.ma.is_masked(raw_results.columns[param][index])}
             found_params = set(params_dict.keys())
             if {'ra', 'dec', 'pmra', 'pmdec', "ref_epoch"} - found_params == set():
@@ -287,7 +326,14 @@ class GaiaQuery:
                 params_dict["dec_epochJ2000"] = J2000.dec.degree
                 params_dict["ra_epochJ2000_error"] = params_dict["ra_error"]
                 params_dict["dec_epochJ2000_error"] = params_dict["dec_error"]
-
+                # distance
+                if 'parallax' in found_params:
+                    parallax_arcsec = float(params_dict['parallax']) * 0.001
+                    params_dict['dist_parallax'] = 1.0 / parallax_arcsec
+                    if "parallax_error" in found_params:
+                        parallax_error_arcsec = float(params_dict['parallax_error']) * 0.001
+                        if parallax_arcsec > parallax_error_arcsec * 10.0:
+                            params_dict['dist_parallax_error'] = parallax_error_arcsec / (parallax_arcsec**2.0)
             sources_dict[params_dict['source_id']] = {param: params_dict[param] for param in params_dict.keys()
                                                       if params_dict[param] != '--'}
         return sources_dict
@@ -306,21 +352,31 @@ class GaiaQuery:
         list_of_sub_lists.append(sub_list)
         self.star_dict = {}
         for sub_list in list_of_sub_lists:
-            job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source WHERE source_id=" + str(sub_list[0])
-            if len(sub_list) > 1:
-                for list_index in range(1, len(sub_list)):
-                    job_text += " OR source_id=" + str(sub_list[list_index])
+            if dr_num == 2:
+                job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source AS g, " + \
+                           "external.gaiadr2_geometric_distance AS d " + \
+                           "WHERE (g.source_id=" + str(sub_list[0]) + " AND d.source_id = g.source_id)"
+                if len(sub_list) > 1:
+                    for list_index in range(1, len(sub_list)):
+                        job_text += " OR (g.source_id=" + str(sub_list[list_index]) + " AND d.source_id = g.source_id)"
+            else:
+                job_text = simple_job_text(dr_num, sub_list)
             job = Gaia.launch_job_async(job_text)
-            
             sources_dict = self.astroquery_get_job(job, dr_num=dr_num)
+            redo_ids = [source_id for source_id in
+                        {int(source_id_str) for source_id_str in sub_list} - set(sources_dict.keys())]
+            if redo_ids:
+                job_text = simple_job_text(dr_num, redo_ids)
+                job = Gaia.launch_job_async(job_text)
+                sources_dict.update(self.astroquery_get_job(job, dr_num=dr_num))
             self.star_dict.update({(gaia_id_int,): sources_dict[gaia_id_int] for gaia_id_int in sources_dict.keys()})
 
     def astroquery_cone(self, ra_icrs, dec_icrs, radius_deg=1.0):
         # gaia_coord = convert_to_gaia_dr2_coord(ra_icrs, dec_icrs)
 
-        job_text = "SELECT * FROM gaiadr2.gaia_source WHERE " +\
-                   "CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec)," +\
-                   "CIRCLE('ICRS'," + str(ra_icrs) + "," + str(dec_icrs) + "," + str(radius_deg) +"))=1;"
+        job_text = "SELECT * FROM gaiadr2.gaia_source WHERE " + \
+                   "CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec)," + \
+                   "CIRCLE('ICRS'," + str(ra_icrs) + "," + str(dec_icrs) + "," + str(radius_deg) + "))=1;"
 
         job = Gaia.launch_job_async(job_text)
         sources_dict = self.astroquery_get_job(job)
@@ -329,5 +385,6 @@ class GaiaQuery:
 
 if __name__ == "__main__":
     gl = GaiaLib(verbose=True)
-    hypatia_handle, gaia_params = gl.get(hypatia_name="Gaia DR2 1016674048078637568")
-    # gd.get_hip_star_gaia_data()
+    hypatia_handle, gaia_params = gl.get(hypatia_name="HD 1234")
+    # gl.gaia_query.astroquery_source(simbad_formatted_name_list=["Gaia DR2 1016674048078637568",
+    #                                                               "Gaia DR2 1076515002779544960"], dr_num=2)
