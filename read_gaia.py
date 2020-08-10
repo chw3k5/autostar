@@ -4,7 +4,6 @@ import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
-from astroquery.gaia import Gaia
 from autostar.table_read import row_dict
 from ref import ref_dir
 from star_names import star_name_format, StarName, StringStarName
@@ -12,6 +11,7 @@ from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
+
 
 def simple_job_text(dr_num, sub_list):
     job_text = "SELECT * FROM gaiadr" + str(dr_num) + ".gaia_source WHERE source_id=" + str(sub_list[0])
@@ -263,6 +263,8 @@ class GaiaRef:
 
 class GaiaQuery:
     def __init__(self, verbose=False):
+        # import this package at 'runtime' not 'import time' to avoid an unnecessary connection to the Gaia SQL server
+        self.Gaia = __import__("astroquery.gaia")
         self.verbose = verbose
         self.gaia_dr1_data = None
         self.gaia_dr2_data = None
@@ -361,13 +363,13 @@ class GaiaQuery:
                         job_text += " OR (g.source_id=" + str(sub_list[list_index]) + " AND d.source_id = g.source_id)"
             else:
                 job_text = simple_job_text(dr_num, sub_list)
-            job = Gaia.launch_job_async(job_text)
+            job = self.Gaia.launch_job_async(job_text)
             sources_dict = self.astroquery_get_job(job, dr_num=dr_num)
             redo_ids = [source_id for source_id in
                         {int(source_id_str) for source_id_str in sub_list} - set(sources_dict.keys())]
             if redo_ids:
                 job_text = simple_job_text(dr_num, redo_ids)
-                job = Gaia.launch_job_async(job_text)
+                job = self.Gaia.launch_job_async(job_text)
                 sources_dict.update(self.astroquery_get_job(job, dr_num=dr_num))
             self.star_dict.update({(gaia_id_int,): sources_dict[gaia_id_int] for gaia_id_int in sources_dict.keys()})
 
@@ -378,7 +380,7 @@ class GaiaQuery:
                    "CONTAINS(POINT('ICRS',gaiadr2.gaia_source.ra,gaiadr2.gaia_source.dec)," + \
                    "CIRCLE('ICRS'," + str(ra_icrs) + "," + str(dec_icrs) + "," + str(radius_deg) + "))=1;"
 
-        job = Gaia.launch_job_async(job_text)
+        job = self.Gaia.launch_job_async(job_text)
         sources_dict = self.astroquery_get_job(job)
         return sources_dict
 
