@@ -144,12 +144,21 @@ class ClassyReader:
     One added functionally over the table dictionary definition above is the that the filename from which the data
     is read, is also saved under the filename attribute.
     """
-    def __init__(self, filename, delimiter=","):
+    def __init__(self, filename, delimiter=",", remove_str=None):
         self.filename = filename
         table_dict = get_table_data(filename=filename, delimiter=delimiter)
         self.keys = list(table_dict.keys())
         for key in self.keys:
-            setattr(self, key, table_dict[key])
+            values_list = table_dict[key]
+            if remove_str is not None:
+                new_values_list = []
+                for value in values_list:
+                    if isinstance(value, str):
+                        new_values_list.append(value.replace(remove_str, ""))
+                    else:
+                        new_values_list.append(value)
+                values_list = new_values_list
+            setattr(self, key, values_list)
 
 
 if __name__ == "__main__":
