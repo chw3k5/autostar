@@ -1,5 +1,6 @@
 import os
 import time
+import importlib
 import numpy as np
 from astropy import units as u
 from astropy.time import Time
@@ -9,6 +10,7 @@ from ref import ref_dir
 from star_names import star_name_format, StarName, StringStarName
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
+
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
 
@@ -264,7 +266,8 @@ class GaiaRef:
 class GaiaQuery:
     def __init__(self, verbose=False):
         # import this package at 'runtime' not 'import time' to avoid an unnecessary connection to the Gaia SQL server
-        self.Gaia = __import__("astroquery.gaia")
+        self.astro_query_gaia = importlib.import_module("astroquery.gaia")
+        self.Gaia = self.astro_query_gaia.Gaia
         self.verbose = verbose
         self.gaia_dr1_data = None
         self.gaia_dr2_data = None
