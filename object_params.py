@@ -4,18 +4,17 @@ from autostar.simbad_query import StarDict
 
 class ObjectParams(StarDict):
     def __setitem__(self, key, value):
-        key = str(key).lower().replace(' ', '')
         if not self.__contains__(key):
             if isinstance(value, set):
-                self.data[key] = value
+                self.data[str(key)] = value
             elif isinstance(value, SingleParam):
-                self.data[key] = {value}
+                self.data[str(key)] = {value}
             else:
                 raise ValueError("SingleParam tuple or set is required")
         if isinstance(value, set):
-            self.data[key] |= value
+            self.data[str(key)] |= value
         elif isinstance(value, SingleParam):
-            self.data[key].add(value)
+            self.data[str(key)].add(value)
         else:
             raise ValueError("SingleParam tuple or set is required")
 
