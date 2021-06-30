@@ -4,19 +4,20 @@ from autostar.simbad_query import StarDict
 
 class ObjectParams(StarDict):
     def __setitem__(self, key, value):
-        if not self.__contains__(key):
+        if self.__contains__(key):
+            if isinstance(value, set):
+                self.data[str(key)] |= value
+            elif isinstance(value, SingleParam):
+                self.data[str(key)].add(value)
+            else:
+                raise ValueError("SingleParam or set is required")
+        else:
             if isinstance(value, set):
                 self.data[str(key)] = value
             elif isinstance(value, SingleParam):
                 self.data[str(key)] = {value}
             else:
-                raise ValueError("SingleParam tuple or set is required")
-        if isinstance(value, set):
-            self.data[str(key)] |= value
-        elif isinstance(value, SingleParam):
-            self.data[str(key)].add(value)
-        else:
-            raise ValueError("SingleParam tuple or set is required")
+                raise ValueError("SingleParam or set is required")
 
     def update_single_ref_source(self, ref_str, params_dict):
         new_param_dict = {}

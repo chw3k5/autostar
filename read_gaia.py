@@ -163,7 +163,8 @@ class GaiaLib:
                         params_dicts[param_key]['units'] = self.gaia_query.param_to_units[param_key]
             param_names = set(params_dicts.keys()) - self.object_params_to_trim
             for param_name in param_names:
-                new_object_params[param_name] = set_single_param(param_dict=params_dicts[param_name])
+                this_param_single_param = set_single_param(param_dict=params_dicts[param_name])
+                new_object_params[param_name] = this_param_single_param
         return new_object_params
 
     def get_object_params(self, hypatia_name):
@@ -284,7 +285,7 @@ class GaiaQuery:
                                        "radial_velocity", "radial_velocity_error",
                                        "teff_val", "teff_percentile_lower", "teff_percentile_upper",
                                        "r_est", "r_lo", "r_hi"}
-        self.param_to_units = {"ra": "degrees", "ra_error": "mas", 'dec': 'degrees', "dec_error": 'mas',
+        self.param_to_units = {"ra_epochJ2000": "deg", "ra_error": "mas", 'dec_epochJ2000': 'deg', "dec_error": 'mas',
                                "ref_epoch": 'Julian Years', 'parallax': 'mas', "parallax_error": "mas",
                                "pmra": 'mas/year', "pmra_error": "mas/year",
                                "pmdec": 'mas/year', "pmdec_error": "mas/year",
@@ -292,7 +293,7 @@ class GaiaQuery:
                                "radial_velocity": "km/s",
                                "teff_val": "K", "teff_percentile_lower": "K", "teff_percentile_upper": "K",
                                "dist_parallax": "[pc]", "dist_parallax_error": "[pc]",
-                               "r_est": "[pc]", "r_lo": "[pc]", "r_hi": "[pc]"}
+                               "r_est": "[pc]", "r_lo": "[pc]", "r_hi": "[pc]", 'dist': '[pc]'}
         self.params_with_units = set(self.param_to_units.keys())
 
     def astroquery_get_job(self, job, dr_num=2):
