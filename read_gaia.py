@@ -149,10 +149,7 @@ class GaiaLib:
                     if param_name not in param_names_found:
                         params_dicts[param_name] = {}
                         param_names_found.add(param_name)
-                    # convert to make the error have the same units as the primary value
-                    if "ra" in param_key or "dec" in param_key:
-                        gaia_params_dict[param_key] = gaia_params_dict[param_key] * deg_per_mas
-                    params_dicts[param_name]["err"] = gaia_params_dict[param_key]
+                    params_dicts[param_name]['err'] = gaia_params_dict[param_key]
                 else:
                     if param_key not in param_names_found:
                         params_dicts[param_key] = {}
@@ -285,14 +282,14 @@ class GaiaQuery:
                                        "radial_velocity", "radial_velocity_error",
                                        "teff_val", "teff_percentile_lower", "teff_percentile_upper",
                                        "r_est", "r_lo", "r_hi"}
-        self.param_to_units = {"ra_epochJ2000": "deg", "ra_error": "mas", 'dec_epochJ2000': 'deg', "dec_error": 'mas',
+        self.param_to_units = {"ra_epochJ2000": "deg", "ra_error": "deg", 'dec_epochJ2000': 'deg', "dec_error": 'deg',
                                "ref_epoch": 'Julian Years', 'parallax': 'mas', "parallax_error": "mas",
                                "pmra": 'mas/year', "pmra_error": "mas/year",
                                "pmdec": 'mas/year', "pmdec_error": "mas/year",
                                "phot_g_mean_flux": "e-/s", "phot_g_mean_mag": 'mag',
                                "radial_velocity": "km/s",
                                "teff_val": "K", "teff_percentile_lower": "K", "teff_percentile_upper": "K",
-                               "dist_parallax": "[pc]", "dist_parallax_error": "[pc]",
+                               "dist_parallax": "[pc]",
                                "r_est": "[pc]", "r_lo": "[pc]", "r_hi": "[pc]", 'dist': '[pc]'}
         self.params_with_units = set(self.param_to_units.keys())
 
@@ -330,16 +327,15 @@ class GaiaQuery:
                 J2000 = icrs.apply_space_motion(Time(2000.0, format='decimalyear'))
                 params_dict["ra_epochJ2000"] = J2000.ra.degree
                 params_dict["dec_epochJ2000"] = J2000.dec.degree
-                params_dict["ra_epochJ2000_error"] = params_dict["ra_error"]
-                params_dict["dec_epochJ2000_error"] = params_dict["dec_error"]
+                params_dict["ra_epochJ2000_error"] = params_dict["ra_error"] * deg_per_mas
+                params_dict["dec_epochJ2000_error"] = params_dict["dec_error"] * deg_per_mas
                 # distance
                 if 'parallax' in found_params:
                     parallax_arcsec = float(params_dict['parallax']) * 0.001
                     params_dict['dist_parallax'] = 1.0 / parallax_arcsec
-                    if "parallax_error" in found_params:
-                        parallax_error_arcsec = float(params_dict['parallax_error']) * 0.001
-                        if parallax_arcsec > parallax_error_arcsec * 10.0:
-                            params_dict['dist_parallax_error'] = parallax_error_arcsec / (parallax_arcsec**2.0)
+                    # if "parallax_error" in found_params:
+                    #     parallax_error_arcsec = float(params_dict['parallax_error']) * 0.001
+                    #     params_dict['dist_parallax_error'] = 1.0 / (parallax_arcsec - (2.0 * parallax_error_arcsec))
             sources_dict[params_dict['source_id']] = {param: params_dict[param] for param in params_dict.keys()
                                                       if params_dict[param] != '--'}
         return sources_dict
