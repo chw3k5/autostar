@@ -1,8 +1,9 @@
 import os
-from SpExoDisks.ref import ref_dir
-from SpExoDisks.star_names import star_name_format, StringStarName
-from SpExoDisks.autostar.simbad_query import SimbadLib
-from SpExoDisks.spexodisks.load.name_correction import verify_starname
+
+from ref import ref_dir
+from star_names import star_name_format, StringStarName
+from autostar.simbad_query import SimbadLib
+from spexodisks.load.name_correction import verify_starname
 
 
 class CheckStarNames:

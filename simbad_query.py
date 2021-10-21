@@ -10,11 +10,11 @@ from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
 from astroquery.exceptions import TableParseError
 
-from SpExoDisks.ref import sb_ref_file_name, sb_desired_names, sb_main_ref_file_name
-from SpExoDisks.star_names import star_name_format, optimal_star_name, star_name_preference, \
+from ref import sb_ref_file_name, sb_desired_names, sb_main_ref_file_name
+from star_names import star_name_format, optimal_star_name, star_name_preference, \
     StringStarName, StarName
-from SpExoDisks.autostar.table_read import row_dict
-from SpExoDisks.autostar.bad_stars import BadStars
+from autostar.table_read import row_dict
+from autostar.bad_stars import BadStars
 
 
 Star_ID = namedtuple("Star_ID", "catalog type id")

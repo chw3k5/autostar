@@ -5,11 +5,11 @@ import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
-from SpExoDisks.autostar.table_read import row_dict
-from SpExoDisks.ref import ref_dir
-from SpExoDisks.star_names import star_name_format, StarName, StringStarName
-from SpExoDisks.autostar.simbad_query import SimbadLib, StarDict
-from SpExoDisks.autostar.object_params import ObjectParams, set_single_param
+from autostar.table_read import row_dict
+from ref import ref_dir
+from star_names import star_name_format, StarName, StringStarName
+from autostar.simbad_query import SimbadLib, StarDict
+from autostar.object_params import ObjectParams, set_single_param
 
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
