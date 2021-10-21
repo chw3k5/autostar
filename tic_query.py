@@ -1,11 +1,11 @@
 import os
 import numpy as np
 import astroquery.mast
-from ref import ref_dir
-from star_names import star_name_format, StringStarName
-from autostar.table_read import num_format
-from autostar.simbad_query import SimbadLib, StarDict
-from autostar.object_params import ObjectParams, set_single_param
+from SpExoDisks.ref import ref_dir
+from SpExoDisks.star_names import star_name_format, StringStarName
+from SpExoDisks.autostar.table_read import num_format
+from SpExoDisks.autostar.simbad_query import SimbadLib, StarDict
+from SpExoDisks.autostar.object_params import ObjectParams, set_single_param
 
 
 class TicQuery:
@@ -191,7 +191,7 @@ class TicQuery:
         params_dicts = {}
         param_names = set()
         for param_key in requested_dict.keys():
-            if "e_" in param_key:
+            if "e_" == param_key[:2]:
                 param_name = param_key.replace("e_", "")
                 if param_name not in param_names:
                     params_dicts[param_name] = {}

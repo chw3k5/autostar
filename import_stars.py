@@ -1,7 +1,8 @@
 import os
-from ref import ref_dir
-from star_names import star_name_format, StringStarName
-from autostar.simbad_query import SimbadLib
+from SpExoDisks.ref import ref_dir
+from SpExoDisks.star_names import star_name_format, StringStarName
+from SpExoDisks.autostar.simbad_query import SimbadLib
+from SpExoDisks.spexodisks.load.name_correction import verify_starname
 
 
 class CheckStarNames:
@@ -21,11 +22,9 @@ class CheckStarNames:
                 lines = f.readlines()
             for line in lines:
                 self.raw_star_list.extend(line.strip().split(delimiter))
-
-        self.hypatia_formatted_names = [star_name_format(string_name) for string_name in self.raw_star_list]
-        self.simbad_formatted_names = [StringStarName(hyp_name).string_name
-                                       for hyp_name in self.hypatia_formatted_names]
-
+        self.verified_names = [verify_starname(string_name) for string_name in self.raw_star_list]
+        self.hypatia_formatted_names = [hyp_name for str_name, hyp_name in self.verified_names]
+        self.simbad_formatted_names = [str_name for str_name, hyp_name in self.verified_names]
         self.type_id_dict = {}
         self.available_star_name_types = set()
         for (name_type, star_id) in self.hypatia_formatted_names:

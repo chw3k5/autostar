@@ -1,19 +1,24 @@
-from time import sleep
-import warnings
+
 import os
+import warnings
+import numpy as np
+from time import sleep
 from collections import namedtuple, UserDict
+
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
-from ref import sb_ref_file_name, sb_desired_names
-from star_names import star_name_format, optimal_star_name, star_name_preference, \
+from astroquery.exceptions import TableParseError
+
+from SpExoDisks.ref import sb_ref_file_name, sb_desired_names, sb_main_ref_file_name
+from SpExoDisks.star_names import star_name_format, optimal_star_name, star_name_preference, \
     StringStarName, StarName
-from autostar.table_read import row_dict
-from autostar.bad_stars import BadStars
+from SpExoDisks.autostar.table_read import row_dict
+from SpExoDisks.autostar.bad_stars import BadStars
 
 
 Star_ID = namedtuple("Star_ID", "catalog type id")
-simbad_count = 0
+simbad_count = 1
 
 
 def simbad_coord_to_deg(ra_string, dec_string):
@@ -40,6 +45,39 @@ def get_single_name_data(formatted_name):
     return found_names
 
 
+def get_query_object(formatted_name):
+    """
+    This is the primary query type for Simbad, it gives the star's Main Simbad ID,
+    and it's coordinates.
+
+    :param formatted_name: str - a formatted string that will match a Simbad record.
+    :return: list of dicts for multiple objects or a dictionary object with the query data
+             for a single query.
+    """
+    try:
+        results_table = Simbad.query_object(formatted_name)
+    except TableParseError:
+        print(f'\nSimbad Query Exception for {formatted_name}\n')
+        return None
+    if results_table is None:
+        return None
+    results_dict = dict(results_table)
+
+    data_len = len(np.array(results_dict['MAIN_ID']))
+    if data_len != 1:
+        results_per_object = []
+        for object_index in range(data_len):
+            data_this_object = {}
+            for results_key in results_dict.keys():
+                data_this_object[results_key] = np.array(results_dict[results_key])[object_index]
+            results_per_object.append(data_this_object)
+        return results_per_object
+    else:
+        data_this_object = {results_key: np.array(results_dict[results_key])[0]
+                            for results_key in results_dict.keys()}
+        return data_this_object
+
+
 def simbad_to_handle(simbad_formatted_name):
     return simbad_formatted_name.replace(" ", "_").replace("*", "star").replace("+", "plus").replace("-", "minus")\
         .replace("2MASS", "TWOMASS").replace(".", "point").replace("[", "leftsqbracket").replace("]", "rightsqbracket")
@@ -64,6 +102,109 @@ def make_hypatia_handle(star_names_dict):
         # self.star_name_preference includes all the allowed name types, this error should never be raised
         raise KeyError("This is no overlap between the star names and the star_name preferences.")
     return star_reference_name
+
+
+
+class SimbadMainRef:
+    """
+    Simbad (simbad.fr) main query returns an object's primary (main_id) and coordinate data, and bibliographic code.
+    This class handles the referencing of this data, also reads and writes new data.
+
+    This class leverages the SimbadLib class to map the data to make the hypatia_handle the main tool for getting data.
+    """
+
+    main_ref_params = ['MAIN_ID', 'RA', 'DEC', 'RA_PREC', 'DEC_PREC', 'COO_ERR_MAJA', 'COO_ERR_MINA', 'COO_ERR_ANGLE',
+                       'COO_QUAL', 'COO_WAVELENGTH', 'COO_BIBCODE', 'SCRIPT_NUMBER_ID']
+
+    def __init__(self, ref_path=None, simbad_lib=None):
+        if ref_path is None:
+            self.ref_path = sb_main_ref_file_name
+        else:
+            self.ref_path = ref_path
+        if simbad_lib is None:
+            self.simbad_lib = SimbadLib()
+        else:
+            self.simbad_lib = simbad_lib
+        self.simbad_query = SimbadQuery()
+
+        # data storage
+        self.main_obj_by_handle = {}
+        # operational Flags
+        self.write_write_flag = False
+
+        # get the reference data
+        self.read()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self.write_write_flag:
+            self.write()
+        return
+
+    def str_to_handle(self, string_name):
+        object_handle = make_hypatia_handle(self.simbad_lib.get_star_dict(string_name))
+        return object_handle
+
+    def add_star(self, string_name, object_handle=None):
+        if object_handle is None:
+            object_handle = self.str_to_handle(string_name=string_name)
+        if object_handle in self.main_obj_by_handle.keys():
+            return False
+        else:
+            simbad_string = handle_to_simbad(object_handle)
+            object_dict = self.simbad_query.get_main_data(formatted_name=simbad_string)
+            self.main_obj_by_handle[object_handle] = object_dict
+            return True
+
+    def get_object(self, string_name, object_handle=None):
+        if object_handle is None:
+            object_handle = self.str_to_handle(string_name=string_name)
+        if self.add_star(string_name=string_name, object_handle=object_handle):
+            self.write_write_flag = True
+        return self.main_obj_by_handle[object_handle]
+
+    def write(self):
+        print(f'Writing the Simbad main query reference file at: {self.ref_path}')
+        with open(self.ref_path, 'w') as f:
+            header_line = f'handle'
+            for simbad_column in self.main_ref_params:
+                header_line += f',{simbad_column}'
+            f.write(header_line + '\n')
+            for object_handle in sorted(self.main_obj_by_handle.keys()):
+                object_data = self.main_obj_by_handle[object_handle]
+                line = f'{object_handle}'
+                for simbad_column in self.main_ref_params:
+                    if object_data is None:
+                        line += f','
+                    elif simbad_column not in object_data.keys():
+                        line += f','
+                    elif isinstance(object_data[simbad_column], str) and object_data[simbad_column] == '':
+                        line += f','
+                    elif isinstance(object_data[simbad_column], (float, int)) and np.isnan(object_data[simbad_column]):
+                        line += f','
+                    else:
+                        line += f',{object_data[simbad_column]}'
+                f.write(line + '\n')
+        self.write_write_flag = False
+        print(f'  ...writing complete')
+
+    def read(self):
+        print(f'Read the Simbad main query reference file at: {self.ref_path}')
+        file_data = row_dict(filename=self.ref_path, key='handle', null_value='',
+                             inner_key_remove=True)
+        formatted_data = {}
+        for handle in file_data.keys():
+            file_record = file_data[handle]
+            if file_record == {}:
+                formatted_data[handle] = None
+            else:
+                formatted_data[handle] = file_record
+        self.main_obj_by_handle.update(formatted_data)
+
+
+
 
 
 class SimbadLib:
@@ -249,11 +390,17 @@ class SimbadQuery:
         len_names_list = len(simbad_name_list)
         global simbad_count
         for index, name_string in list(enumerate(simbad_name_list)):
-            simbad_count += 1
+            if 0 == simbad_count % self.count_per_big_sleep:
+                if self.verbose:
+                    print("\nBig Simbad Sleep:", self.big_sleep_time, 'seconds.\n')
+                sleep(self.big_sleep_time)
+            else:
+                sleep(self.small_sleep_time)
             if self.verbose:
                 print("Getting data for star:", "%30s" % name_string, " ", "%5s" % (index + 1), "of",
                       "%5s" % len_names_list)
             result_table = Simbad.query_object(name_string)
+            simbad_count += 1
             if result_table is not None:
                 try:
                     ra_deg, dec_deg, hmsdms = simbad_coord_to_deg(result_table.columns["RA"],
@@ -264,13 +411,33 @@ class SimbadQuery:
                     self.coord_star_info[hypatia_name] = result_dict
                 except ValueError:
                     pass
-            if 0 == simbad_count % self.count_per_big_sleep:
-                if self.verbose:
-                    print("\nBig Simbad Sleep:", self.big_sleep_time, 'seconds.\n')
-                sleep(self.big_sleep_time)
-            else:
-                sleep(self.small_sleep_time)
         self.count = simbad_count
+
+    def get_main_data(self, formatted_name):
+        """ This is the primary query type for Simbad, it gives the star's Main Simbad ID,
+            and it's coordinates.
+
+        :param formatted_name: str - a formatted string that will match a Simbad record.
+        :return: dict - A dictionary object with the query data for a single query.
+        """
+        global simbad_count
+        if 0 == simbad_count % self.count_per_big_sleep:
+            if self.verbose:
+                print("\nBig Simbad Sleep:", self.big_sleep_time, 'seconds.\n')
+            sleep(self.big_sleep_time)
+        else:
+            sleep(self.small_sleep_time)
+        object_dict = get_query_object(formatted_name=formatted_name)
+        simbad_count += 1
+        if isinstance(object_dict, list):
+            raise TypeError(f"only single object queries are allows, this query resulted in {len(object_dict)} " +
+                            "objects returned.")
+        if object_dict is None:
+            print(f"No Simbad Main Query data for {formatted_name}.")
+        else:
+            print(f'Found data from Main Simbad Query. Query:{formatted_name}  ' +
+                  f"Main_ID:{object_dict['MAIN_ID']}")
+        return object_dict
 
 
 class SimbadRef:
@@ -464,9 +631,11 @@ class StarDict(UserDict):
 
 
 if __name__ == "__main__":
+    # obj_data = get_query_object()
     simbad_tester = SimbadQuery()
-    simbad_tester.get_name_data(simbad_name_list=["[FLM99] Star F"])
-    found_stars = simbad_tester.stars_found
+    simbad_tester.get_main_data(formatted_name='IRAS F04308+2244')
+    # simbad_tester.get_name_data(simbad_name_list=["[FLM99] Star F"])
+    # found_stars = simbad_tester.stars_found
     # sr = SimbadRef()
     # sr.load()
     # sr.make_lookup()

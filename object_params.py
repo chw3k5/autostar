@@ -1,9 +1,10 @@
 from typing import NamedTuple, Union, Optional
-from autostar.simbad_query import StarDict
+from SpExoDisks.autostar.simbad_query import StarDict
 
 
 class ObjectParams(StarDict):
     def __setitem__(self, key, value):
+        key = key.lower()
         if self.__contains__(key):
             if isinstance(value, set):
                 self.data[str(key)] |= value

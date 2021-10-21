@@ -5,11 +5,11 @@ import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
-from autostar.table_read import row_dict
-from ref import ref_dir
-from star_names import star_name_format, StarName, StringStarName
-from autostar.simbad_query import SimbadLib, StarDict
-from autostar.object_params import ObjectParams, set_single_param
+from SpExoDisks.autostar.table_read import row_dict
+from SpExoDisks.ref import ref_dir
+from SpExoDisks.star_names import star_name_format, StarName, StringStarName
+from SpExoDisks.autostar.simbad_query import SimbadLib, StarDict
+from SpExoDisks.autostar.object_params import ObjectParams, set_single_param
 
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
@@ -128,11 +128,11 @@ class GaiaLib:
                 if lower_error is not None or upper_error is not None:
                     params_dicts['dist']['err'] = (lower_error, upper_error)
             if "teff_val" in gaia_params_dict_keys:
-                params_dicts['Teff'] = {}
-                param_names_found.add('Teff')
-                params_dicts['Teff']['value'] = gaia_params_dict["teff_val"]
-                params_dicts['Teff']['ref'] = ref_str
-                params_dicts['Teff']['units'] = self.gaia_query.param_to_units["teff_val"]
+                params_dicts['teff'] = {}
+                param_names_found.add('teff')
+                params_dicts['teff']['value'] = gaia_params_dict["teff_val"]
+                params_dicts['teff']['ref'] = ref_str
+                params_dicts['teff']['units'] = self.gaia_query.param_to_units["teff_val"]
                 if "teff_percentile_upper" in gaia_params_dict_keys:
                     upper_error = gaia_params_dict["teff_percentile_upper"] - gaia_params_dict["teff_val"]
                 else:
@@ -142,7 +142,7 @@ class GaiaLib:
                 else:
                     lower_error = None
                 if lower_error is not None or upper_error is not None:
-                    params_dicts['Teff']['err'] = (lower_error, upper_error)
+                    params_dicts['teff']['err'] = (lower_error, upper_error)
             for param_key in gaia_params_dict_keys - self.special_case_params:
                 if "_error" in param_key:
                     param_name = param_key.replace("_error", "")
