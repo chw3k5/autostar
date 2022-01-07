@@ -104,7 +104,6 @@ def make_hypatia_handle(star_names_dict):
     return star_reference_name
 
 
-
 class SimbadMainRef:
     """
     Simbad (simbad.fr) main query returns an object's primary (main_id) and coordinate data, and bibliographic code.
@@ -202,9 +201,6 @@ class SimbadMainRef:
             else:
                 formatted_data[handle] = file_record
         self.main_obj_by_handle.update(formatted_data)
-
-
-
 
 
 class SimbadLib:
