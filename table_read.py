@@ -20,7 +20,7 @@ def num_format(a_string):
             return a_string
 
 
-def get_table_data(filename, delimiter=','):
+def get_table_data(filename, delimiter=',', remove_str=None):
     """
     Get Data and comments from a file.
     returns a dictionary object contain any comments and the columns of data in a file.
@@ -66,6 +66,9 @@ def get_table_data(filename, delimiter=','):
             for (index, row_item) in list(enumerate(row_items)):
                 # Get rid of white space, "\n", and "\r" characters
                 stripped_item = row_item.strip()
+                # get rid of another unwanted strings like quotes
+                if remove_str is not None:
+                    stripped_item = stripped_item.replace(remove_str, '')
                 # if item is a number convert it to a float
                 processed_item = num_format(stripped_item)
                 # assign the item to the correct column name in tableDct
@@ -144,9 +147,9 @@ class ClassyReader:
     One added functionally over the table dictionary definition above is the that the filename from which the data
     is read, is also saved under the filename attribute.
     """
-    def __init__(self, filename, delimiter=","):
+    def __init__(self, filename, delimiter=",", remove_str=None):
         self.filename = filename
-        table_dict = get_table_data(filename=filename, delimiter=delimiter)
+        table_dict = get_table_data(filename=filename, delimiter=delimiter, remove_str=remove_str)
         self.keys = list(table_dict.keys())
         for key in self.keys:
             setattr(self, key, table_dict[key])
