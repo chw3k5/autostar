@@ -10,7 +10,7 @@ from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
 from astroquery.exceptions import TableParseError
 
-from ref import sb_ref_file_name, sb_desired_names, sb_main_ref_file_name
+from ref.ref import sb_ref_file_name, sb_desired_names, sb_main_ref_file_name
 from star_names import star_name_format, optimal_star_name, star_name_preference, \
     StringStarName, StarName
 from autostar.table_read import row_dict

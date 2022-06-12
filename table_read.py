@@ -1,7 +1,7 @@
 """
 This file read-in file for data is tailored to replace the the "atpy" packages read-in functionally.
 
-1) How ever there are some differences: Comment lines denoted by a "#" are now saved to a 'comments' in a
+1) However there are some differences: Comment lines denoted by a "#" are now saved to a 'comments' in a
    dictionary key or object attribute.
 2) All blank lines, or lines of only white space are ignored.
 3) All numbers are by default converted to floats.

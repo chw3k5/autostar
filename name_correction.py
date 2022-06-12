@@ -1,6 +1,6 @@
 import os
 
-from ref import ref_dir
+from ref.ref import ref_dir
 from star_names import star_name_format, StringStarName
 from autostar.simbad_query import SimbadLib
 
