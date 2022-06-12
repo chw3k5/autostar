@@ -7,7 +7,7 @@ from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
 from autostar.table_read import row_dict
 from ref.ref import ref_dir
-from star_names import star_name_format, StarName, StringStarName
+from ref.star_names import star_name_format, StarName, StringStarName
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
 
