@@ -95,7 +95,7 @@ class PopNamesLib:
 an = AnnoyingNames()
 
 
-def verify_starname(test_object_name):
+def verify_starname(test_object_name, other_info=None):
     object_name = None
     # This is catch for star names that are annoying that were previously found and recorded
     if test_object_name.lower() in an.annoying_names:
@@ -104,7 +104,11 @@ def verify_starname(test_object_name):
     try:
         hypatia_name = star_name_format(test_object_name)
     except ValueError:
-        object_name = input("Enter the Simbad name for: " + test_object_name)
+        if other_info is None:
+            info_str = ""
+        else:
+            info_str = "\n" + str(other_info)
+        object_name = input("Enter the Simbad name for: " + test_object_name + info_str)
         hypatia_name = star_name_format(object_name)
         an.append(test_object_name, object_name)
     if object_name is None:
