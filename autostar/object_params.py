@@ -1,4 +1,5 @@
 from typing import NamedTuple, Union, Optional
+
 from autostar.simbad_query import StarDict
 
 
