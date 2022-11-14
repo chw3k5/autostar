@@ -7,8 +7,8 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
 
-from ref.ref import ref_dir
-from ref.star_names import star_name_format, StarName, StringStarName
+from autostar.config.ref import ref_dir
+from autostar.config.star_names import star_name_format, StarName, StringStarName
 
 from autostar.table_read import row_dict
 from autostar.simbad_query import SimbadLib, StarDict

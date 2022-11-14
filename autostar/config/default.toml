@@ -1,0 +1,10 @@
+star_names_type = 'hypatia'
+reference_data_dir = 'referernce'
+
+sb_bad_star_name_ignore = "bad_starname_ignore.csv"
+sb_main_ref_filename = "simbad_main_ref_data.csv"
+sb_save_file_name =  "simbad_query_data.pkl"
+sb_save_coord_file_name = "simbad_coord_data.pkl"
+sb_ref_file_name =  "simbad_ref_data.txt"
+sb_desired_names = ["2mass", "gaia dr2", "gaia dr1", "hd", "cd", "tyc", "hip", "gj", "hr", "bd", "ids", "tres", "gv",
+                    "ngc", "bps", "ogle", "xo", 'kepler', "k2", "*", "**", "v*", "name", 'wds', 'hats']

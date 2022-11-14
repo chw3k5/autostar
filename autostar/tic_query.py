@@ -3,9 +3,8 @@ import os
 import numpy as np
 import astroquery.mast
 
-from ref.ref import ref_dir
-from ref.star_names import star_name_format, StringStarName
-
+from autostar.config.ref import ref_dir
+from autostar.config.star_names import star_name_format, StringStarName
 from autostar.table_read import num_format
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
