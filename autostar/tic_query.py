@@ -3,11 +3,10 @@ import os
 import numpy as np
 import astroquery.mast
 
-from autostar.config.ref import ref_dir
-from autostar.config.star_names import star_name_format, StringStarName
 from autostar.table_read import num_format
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
+from autostar.config.datapaths import tic_ref_filename, star_name_format, StringStarName
 
 
 class TicQuery:
@@ -33,7 +32,7 @@ class TicQuery:
         else:
             self.simbad_lib = simbad_lib
         if reference_file_name is None:
-            self.reference_file_name = os.path.join(ref_dir, "tic_ref.csv")
+            self.reference_file_name = tic_ref_filename
         else:
             self.reference_file_name = reference_file_name
 

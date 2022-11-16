@@ -1,7 +1,6 @@
 import os
 
-from autostar.config.ref import ref_dir
-from autostar.config.star_names import star_name_format, StringStarName
+from autostar.config.datapaths import ref_dir, star_name_format, StringStarName
 from autostar.table_read import row_dict
 
 

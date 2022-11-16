@@ -11,5 +11,6 @@ setup(name='autostar',
       python_requires='>3.7',
       install_requires=['numpy',
                         'astropy',
-                        'astroquery']
+                        'astroquery',
+                        'toml']
       )

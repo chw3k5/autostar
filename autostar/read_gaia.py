@@ -7,12 +7,10 @@ from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
 
-from autostar.config.ref import ref_dir
-from autostar.config.star_names import star_name_format, StarName, StringStarName
-
 from autostar.table_read import row_dict
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
+from autostar.config.datapaths import ref_dir, star_name_format, StarName, StringStarName
 
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)

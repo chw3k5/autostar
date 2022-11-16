@@ -9,10 +9,10 @@ from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
 from astroquery.exceptions import TableParseError
 
-import autostar.config.ref as ref
-import autostar.config.star_names as names
-from autostar.table_read import row_dict
 from autostar.bad_stars import BadStars
+from autostar.table_read import row_dict
+from autostar.config.datapaths import sb_desired_names, star_name_format, star_name_preference, \
+    StringStarName, StarName, sb_main_ref_filename, sb_ref_filename
 
 
 Star_ID = namedtuple("Star_ID", "catalog type id")
@@ -26,13 +26,13 @@ def simbad_coord_to_deg(ra_string, dec_string):
     return c.ra.deg, c.dec.deg, c.to_string('hmsdms')
 
 
-def get_single_name_data(formatted_name, optimal_star_name=None, sb_desired_names=None, star_name_format=None):
+def get_single_name_data(formatted_name, optimal_star_name=None, sb_desired_name_types=None, star_name_format=None):
     if optimal_star_name is None:
-        optimal_star_name = names.optimal_star_name
-    if sb_desired_names is None:
-        sb_desired_names = ref.sb_desired_names
+            optimal_star_name = optimal_star_name
+    if sb_desired_name_types is None:
+        sb_desired_name_types = sb_desired_names
     if star_name_format is None:
-        star_name_format = names.star_name_format
+        star_name_format = star_name_format
     found_names = StarDict()
     raw_results = Simbad.query_objectids(formatted_name)
     if raw_results is not None:
@@ -43,7 +43,7 @@ def get_single_name_data(formatted_name, optimal_star_name=None, sb_desired_name
             except ValueError:
                 pass
             else:
-                if name_type in sb_desired_names:
+                if name_type in sb_desired_name_types:
                     new_hypatia_name = star_name_format(test_name)
                     found_names[name_type] = new_hypatia_name.id
     return found_names
@@ -92,11 +92,7 @@ def handle_to_simbad(handle):
         .replace("TWOMASS", "2MASS").replace("point", ".").replace("leftsqbracket", "[").replace("rightsqbracket", "]")
 
 
-def make_hypatia_handle(star_names_dict, star_name_preference=None, StringStarName=None):
-    if star_name_preference is None:
-        star_name_preference = names.star_name_preference
-    if StringStarName is None:
-        StringStarName = names.StringStarName
+def make_hypatia_handle(star_names_dict):
     star_type_keys_this_star = set(star_names_dict.keys())
     # select the name to reference this star's data within this class
     star_types_this_star = star_type_keys_this_star - {"star_name_index"}
@@ -125,7 +121,7 @@ class SimbadMainRef:
 
     def __init__(self, ref_path=None, simbad_lib=None):
         if ref_path is None:
-            self.ref_path = ref.sb_main_ref_file_name
+            self.ref_path = sb_main_ref_filename
         else:
             self.ref_path = ref_path
         if simbad_lib is None:
@@ -349,7 +345,7 @@ class SimbadQuery:
     def __init__(self, verbose=True, go_fast=False, desired_name_types=None):
         self.verbose = verbose
         if desired_name_types is None:
-            self.desired_name_types = ref.sb_desired_names
+            self.desired_name_types = sb_desired_names
         else:
             self.desired_name_types = desired_name_types
         self.stars_found = []
@@ -450,7 +446,7 @@ class SimbadQuery:
 class SimbadRef:
     def __init__(self, ref_file_name=None):
         if ref_file_name is None:
-            self.ref_file_name = ref.sb_ref_file_name
+            self.ref_file_name = sb_ref_filename
         else:
             self.ref_file_name = ref_file_name
         self.star_dict_list = None

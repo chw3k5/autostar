@@ -1,8 +1,7 @@
-import os
 from collections import namedtuple
 
 
-# this is the default that is used if the star_names.py file is not found for a given installation
+# this is the default that is used if the default_star_names.py file is not found for a given installation
 star_letters = {"a", "b", "c", "d", 'e', "f", 'g', 'h', 'i', "s", "l", "n", "p"}
 double_star_letters = {'ab', 'bc', "bb"}
 
