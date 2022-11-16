@@ -1,6 +1,9 @@
+import os
 from collections import namedtuple
 
 
+# the directory the contains this file
+star_names_dir = os.path.dirname(os.path.realpath(__file__))
 # this is the default that is used if the default_star_names.py file is not found for a given installation
 star_letters = {"a", "b", "c", "d", 'e', "f", 'g', 'h', 'i', "s", "l", "n", "p"}
 double_star_letters = {'ab', 'bc', "bb"}

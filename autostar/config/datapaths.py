@@ -4,10 +4,11 @@ import toml
 Star names Formatting
 """
 try:
-    from ref.star_names import star_name_format, optimal_star_name, star_name_preference, StringStarName, StarName
+    from ref.star_names import star_name_format, optimal_star_name, star_name_preference, StringStarName, StarName,\
+        star_names_dir
 except ImportError:
     from autostar.config.default_star_names import star_name_format, optimal_star_name, star_name_preference, \
-        StringStarName, StarName
+        StringStarName, StarName, star_names_dir
 
 """
 Directory information of the autostar package
@@ -22,7 +23,7 @@ packages_dir = os.path.dirname(autostar_dir)
 """
 Looking for a configuration toml file (user.toml), or creating one from the default. 
 """
-user_toml_ref = os.path.join(packages_dir, "ref", "user.toml")
+user_toml_ref = os.path.join(star_names_dir, "user.toml")
 user_toml_local = os.path.join(config_dir, "user.toml")
 user_toml_default = os.path.join(config_dir, "default.toml")
 if os.path.exists(user_toml_ref):
