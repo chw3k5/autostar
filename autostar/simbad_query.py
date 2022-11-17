@@ -12,7 +12,7 @@ from astroquery.exceptions import TableParseError
 from autostar.bad_stars import BadStars
 from autostar.table_read import row_dict
 from autostar.config.datapaths import sb_desired_names, star_name_format, star_name_preference, \
-    StringStarName, StarName, sb_main_ref_filename, sb_ref_filename
+    StringStarName, StarName, sb_main_ref_filename, sb_ref_filename, optimal_star_name
 
 
 Star_ID = namedtuple("Star_ID", "catalog type id")
@@ -26,13 +26,7 @@ def simbad_coord_to_deg(ra_string, dec_string):
     return c.ra.deg, c.dec.deg, c.to_string('hmsdms')
 
 
-def get_single_name_data(formatted_name, optimal_star_name=None, sb_desired_name_types=None, star_name_format=None):
-    if optimal_star_name is None:
-            optimal_star_name = optimal_star_name
-    if sb_desired_name_types is None:
-        sb_desired_name_types = sb_desired_names
-    if star_name_format is None:
-        star_name_format = star_name_format
+def get_single_name_data(formatted_name):
     found_names = StarDict()
     raw_results = Simbad.query_objectids(formatted_name)
     if raw_results is not None:
@@ -43,7 +37,7 @@ def get_single_name_data(formatted_name, optimal_star_name=None, sb_desired_name
             except ValueError:
                 pass
             else:
-                if name_type in sb_desired_name_types:
+                if name_type in sb_desired_names:
                     new_hypatia_name = star_name_format(test_name)
                     found_names[name_type] = new_hypatia_name.id
     return found_names
