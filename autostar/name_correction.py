@@ -1,12 +1,12 @@
 import os
 
 from autostar.simbad_query import SimbadLib
-from autostar.config.datapaths import ref_dir, star_name_format, StringStarName
+from autostar.config.datapaths import annoying_names_filename, popular_names_filename, star_name_format, StringStarName
 
 
 class AnnoyingNames:
     def __init__(self):
-        self.path = os.path.join(ref_dir, "annoying_names.csv")
+        self.path = annoying_names_filename
         self.annoying_names = set()
         self.sb_names = {}
         if os.path.exists(self.path):
@@ -51,7 +51,7 @@ class PopNamesLib:
         if simbad_lib is None:
             simbad_lib = SimbadLib(go_fast=simbad_go_fast)
         self.simbad_lib = simbad_lib
-        file_name = os.path.join(ref_dir, "popular_names.csv")
+        file_name = popular_names_filename
         with open(file_name, 'r') as f:
             pop_file_data = f.readlines()
         header = pop_file_data[0].strip().split(",")
