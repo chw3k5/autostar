@@ -9,7 +9,7 @@ star_names_dir = os.path.dirname(os.path.realpath(__file__))
 star_letters = {"a", "b", "c", "d", 'e', "f", 'g', 'h', 'i', "s", "l", "n", "p"}
 double_star_letters = {'ab', 'bc', "bb"}
 
-single_part_star_names = {"hip", "hd", "hr", "ltt", "hic", "gj", "gaia", "gaia dr1", "gaia dr2",
+single_part_star_names = {"hip", "hd", "hr", "ltt", "hic", "gj", "gaia", "gaia dr1", "gaia dr2", 'gaia dr3',
                           "[bhm2000]", "[bsd96]", "gv", "cvs", "mfjsh2", "ls", 'lhs',
                           'gcirs', 'sh2', 'pismis', 'plx', 'sb', 'pwm', '[s84]', "ic", "wasp", "ross", "koi",
                           "kepler", "hii", "corot", "tres", 'kic', "marvels", 'epic', 'azv', "bds", "k2", "kelt", 'toi',
@@ -36,7 +36,7 @@ asterisk_name_types = {'v*', "*", "**", 'em*', "Name"}
 StarName = namedtuple("StarName", "type id")
 
 # for sorting.py
-star_name_preference = ["hip", 'gaia dr2', 'gaia dr1', "hd", 'bd', "2mass", "tyc"]
+star_name_preference = ["hip", 'gaia dr3', 'gaia dr2', 'gaia dr1', "hd", 'bd', "2mass", "tyc"]
 star_name_preference.extend([star_name for star_name in sorted(star_name_types)
                              if star_name not in star_name_preference[:]])
 
@@ -415,6 +415,7 @@ def gl(star_id):
 def gaia(star_id):
     return "Gaia" + str(star_id[0])
 
+
 @string_name
 def gaia_dr1(star_id):
     return "Gaia DR1 " + str(star_id[0])
@@ -423,6 +424,11 @@ def gaia_dr1(star_id):
 @string_name
 def gaia_dr2(star_id):
     return "Gaia DR2 " + str(star_id[0])
+
+
+@string_name
+def gaia_dr3(star_id):
+    return "Gaia DR3 " + str(star_id[0])
 
 
 @string_name

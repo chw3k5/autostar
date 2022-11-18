@@ -28,7 +28,7 @@ class GaiaLib:
     def __init__(self, simbad_lib=None, simbad_go_fast=False, verbose=True):
         self.verbose = verbose
         self.simbad_go_fast = simbad_go_fast
-        self.max_dr_number = 2
+        self.max_dr_number = 3
         self.dr_numbers = list(range(1, self.max_dr_number + 1))
         self.gaia_name_types = set()
         for dr_number in self.dr_numbers:
@@ -270,6 +270,7 @@ class GaiaQuery:
         self.verbose = verbose
         self.gaia_dr1_data = None
         self.gaia_dr2_data = None
+        self.gaia_dr3_data = None
 
         self.astro_query_dr1_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id", "parallax",
                                        "parallax_error",
@@ -283,6 +284,7 @@ class GaiaQuery:
                                        "radial_velocity", "radial_velocity_error",
                                        "teff_val", "teff_percentile_lower", "teff_percentile_upper",
                                        "r_est", "r_lo", "r_hi"}
+        self.astro_query_dr3_params = self.astro_query_dr2_params
         self.param_to_units = {"ra_epochJ2000": "deg", "ra_error": "deg", 'dec_epochJ2000': 'deg', "dec_error": 'deg',
                                "ref_epoch": 'Julian Years', 'parallax': 'mas', "parallax_error": "mas",
                                "pmra": 'mas/year', "pmra_error": "mas/year",
@@ -304,6 +306,8 @@ class GaiaQuery:
             query_params = self.astro_query_dr1_params
         elif dr_num == 2:
             query_params = self.astro_query_dr2_params
+        elif dr_num == 3:
+            query_params = self.astro_query_dr3_params
         else:
             raise KeyError("The given Gaia Data Release number " + str(dr_num) + " is not of the format.")
 

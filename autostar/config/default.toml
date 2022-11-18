@@ -5,5 +5,5 @@ sb_save_filename =  "simbad_query_data.pkl"
 sb_save_coord_filename = "simbad_coord_data.pkl"
 sb_ref_filename =  "simbad_ref_data.txt"
 tic_ref_filename = "tic_ref.csv"
-sb_desired_names = ["2mass", "gaia dr2", "gaia dr1", "hd", "cd", "tyc", "hip", "gj", "hr", "bd", "ids", "tres", "gv",
+sb_desired_names = ["2mass", 'gaia dr3', "gaia dr2", "gaia dr1", "hd", "cd", "tyc", "hip", "gj", "hr", "bd", "ids", "tres", "gv",
                     "ngc", "bps", "ogle", "xo", 'kepler', "k2", "*", "**", "v*", "name", 'wds', 'hats']
