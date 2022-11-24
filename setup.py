@@ -7,7 +7,7 @@ config_dir = os.path.join('autostar', 'config')
 default_toml_path = os.path.join(config_dir, 'default.toml')
 
 setup(name='autostar',
-      version='0.1.1',
+      version='0.1.2',
       description='Auto-updating datafiles from astronomy databases.',
       author='Caleb Wheeler',
       author_email='chw3k5@gmail.com',
