@@ -1,6 +1,6 @@
 import os
-from ref.ref import ref_dir
-from ref.star_names import star_name_format, StringStarName
+
+from autostar.config.datapaths import ref_dir, star_name_format, StringStarName
 
 
 class NameCorrection:

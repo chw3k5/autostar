@@ -1,6 +1,6 @@
 import os
 
-from ref.ref import ref_dir
+from autostar.config.datapaths import ref_dir
 from autostar.simbad_query import SimbadLib
 from autostar.name_correction import verify_starname
 

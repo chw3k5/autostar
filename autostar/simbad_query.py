@@ -1,4 +1,3 @@
-
 import os
 import warnings
 import numpy as np
@@ -10,11 +9,10 @@ from astropy.coordinates import SkyCoord
 from astroquery.simbad import Simbad
 from astroquery.exceptions import TableParseError
 
-from ref.ref import sb_ref_file_name, sb_desired_names, sb_main_ref_file_name
-from ref.star_names import star_name_format, optimal_star_name, star_name_preference, \
-    StringStarName, StarName
-from autostar.table_read import row_dict
 from autostar.bad_stars import BadStars
+from autostar.table_read import row_dict
+from autostar.config.datapaths import sb_desired_names, star_name_format, star_name_preference, \
+    StringStarName, StarName, sb_main_ref_filename, sb_ref_filename, optimal_star_name
 
 
 Star_ID = namedtuple("Star_ID", "catalog type id")
@@ -117,7 +115,7 @@ class SimbadMainRef:
 
     def __init__(self, ref_path=None, simbad_lib=None):
         if ref_path is None:
-            self.ref_path = sb_main_ref_file_name
+            self.ref_path = sb_main_ref_filename
         else:
             self.ref_path = ref_path
         if simbad_lib is None:
@@ -338,9 +336,12 @@ class SimbadLib:
 
 
 class SimbadQuery:
-    def __init__(self, verbose=True, go_fast=False):
+    def __init__(self, verbose=True, go_fast=False, desired_name_types=None):
         self.verbose = verbose
-        self.desired_name_types = sb_desired_names
+        if desired_name_types is None:
+            self.desired_name_types = sb_desired_names
+        else:
+            self.desired_name_types = desired_name_types
         self.stars_found = []
         self.stars_not_found = []
 
@@ -439,7 +440,7 @@ class SimbadQuery:
 class SimbadRef:
     def __init__(self, ref_file_name=None):
         if ref_file_name is None:
-            self.ref_file_name = sb_ref_file_name
+            self.ref_file_name = sb_ref_filename
         else:
             self.ref_file_name = ref_file_name
         self.star_dict_list = None

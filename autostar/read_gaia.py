@@ -1,18 +1,20 @@
 import os
 import time
 import importlib
+
 import numpy as np
 from astropy import units as u
 from astropy.time import Time
 from astropy.coordinates import SkyCoord, Distance
+
 from autostar.table_read import row_dict
-from ref.ref import ref_dir
-from ref.star_names import star_name_format, StarName, StringStarName
 from autostar.simbad_query import SimbadLib, StarDict
 from autostar.object_params import ObjectParams, set_single_param
+from autostar.config.datapaths import ref_dir, star_name_format, StarName, StringStarName
 
 
 deg_per_mas = 1.0 / (1000.0 * 60.0 * 60.0)
+gaia_dr3_ref = "Gaia DR3 Gaia Collaboration et al. (2016b) and Gaia Collaboration et al. (2022k)"
 
 
 def simple_job_text(dr_num, sub_list):
@@ -24,10 +26,12 @@ def simple_job_text(dr_num, sub_list):
 
 
 class GaiaLib:
+    gaia_dr3_ref = gaia_dr3_ref
+
     def __init__(self, simbad_lib=None, simbad_go_fast=False, verbose=True):
         self.verbose = verbose
         self.simbad_go_fast = simbad_go_fast
-        self.max_dr_number = 2
+        self.max_dr_number = 3
         self.dr_numbers = list(range(1, self.max_dr_number + 1))
         self.gaia_name_types = set()
         for dr_number in self.dr_numbers:
@@ -107,7 +111,10 @@ class GaiaLib:
             dr_number = int(gaia_name_type.replace("gaia dr", "").strip())
             _gaia_ids, gaia_params_dict = gaia_params_dicts[gaia_hypatia_name]
             gaia_params_dict_keys = set(gaia_params_dict.keys())
-            ref_str = "Gaia Data Release " + str(dr_number)
+            if dr_number == 3:
+                ref_str = self.gaia_dr3_ref
+            else:
+                ref_str = "Gaia Data Release " + str(dr_number)
             params_dicts = {}
             param_names_found = set()
             # handling for the distance from the Bailer-Jones Catalog
@@ -127,6 +134,23 @@ class GaiaLib:
                     lower_error = None
                 if lower_error is not None or upper_error is not None:
                     params_dicts['dist']['err'] = (lower_error, upper_error)
+            elif "distance_gspphot" in gaia_params_dict_keys:
+                params_dicts['dist'] = {}
+                param_names_found.add('dist')
+                params_dicts['dist']['value'] = gaia_params_dict["distance_gspphot"]
+                params_dicts['dist']['ref'] = self.gaia_dr3_ref
+                params_dicts['dist']['units'] = self.gaia_query.param_to_units["distance_gspphot"]
+                if "distance_gspphot_upper" in gaia_params_dict_keys:
+                    upper_error = gaia_params_dict["distance_gspphot_upper"] - gaia_params_dict["distance_gspphot"]
+                else:
+                    upper_error = None
+                if "distance_gspphot_lower" in gaia_params_dict_keys:
+                    lower_error = gaia_params_dict["distance_gspphot_lower"] - gaia_params_dict["distance_gspphot"]
+                else:
+                    lower_error = None
+                if lower_error is not None or upper_error is not None:
+                    params_dicts['dist']['err'] = (lower_error, upper_error)
+
             if "teff_val" in gaia_params_dict_keys:
                 params_dicts['teff'] = {}
                 param_names_found.add('teff')
@@ -139,6 +163,22 @@ class GaiaLib:
                     upper_error = None
                 if "teff_percentile_lower" in gaia_params_dict_keys:
                     lower_error = gaia_params_dict["teff_percentile_lower"] - gaia_params_dict["teff_val"]
+                else:
+                    lower_error = None
+                if lower_error is not None or upper_error is not None:
+                    params_dicts['teff']['err'] = (lower_error, upper_error)
+            elif "teff_gspphot" in gaia_params_dict_keys:
+                params_dicts['teff'] = {}
+                param_names_found.add('teff')
+                params_dicts['teff']['value'] = gaia_params_dict["teff_gspphot"]
+                params_dicts['teff']['ref'] = ref_str
+                params_dicts['teff']['units'] = self.gaia_query.param_to_units["teff_gspphot"]
+                if "teff_gspphot_upper" in gaia_params_dict_keys:
+                    upper_error = gaia_params_dict["teff_gspphot_upper"] - gaia_params_dict["teff_gspphot"]
+                else:
+                    upper_error = None
+                if "teff_gspphot_lower" in gaia_params_dict_keys:
+                    lower_error = gaia_params_dict["teff_gspphot_lower"] - gaia_params_dict["teff_gspphot"]
                 else:
                     lower_error = None
                 if lower_error is not None or upper_error is not None:
@@ -269,6 +309,7 @@ class GaiaQuery:
         self.verbose = verbose
         self.gaia_dr1_data = None
         self.gaia_dr2_data = None
+        self.gaia_dr3_data = None
 
         self.astro_query_dr1_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id", "parallax",
                                        "parallax_error",
@@ -282,6 +323,14 @@ class GaiaQuery:
                                        "radial_velocity", "radial_velocity_error",
                                        "teff_val", "teff_percentile_lower", "teff_percentile_upper",
                                        "r_est", "r_lo", "r_hi"}
+        self.astro_query_dr3_params = {"ra", "ra_error", "dec", "dec_error", "ref_epoch", "source_id",
+                                       "parallax", "parallax_error",
+                                       "pmra", "pmra_error", "pmdec", "pmdec_error", "duplicated_source",
+                                       "phot_g_mean_flux", "phot_g_mean_flux_error",
+                                       "phot_g_mean_mag",
+                                       "radial_velocity", "radial_velocity_error",
+                                       "teff_gspphot", "teff_gspphot_lower", "teff_gspphot_upper",
+                                       "distance_gspphot", "distance_gspphot_lower", "distance_gspphot_upper"}
         self.param_to_units = {"ra_epochJ2000": "deg", "ra_error": "deg", 'dec_epochJ2000': 'deg', "dec_error": 'deg',
                                "ref_epoch": 'Julian Years', 'parallax': 'mas', "parallax_error": "mas",
                                "pmra": 'mas/year', "pmra_error": "mas/year",
@@ -289,8 +338,10 @@ class GaiaQuery:
                                "phot_g_mean_flux": "e-/s", "phot_g_mean_mag": 'mag',
                                "radial_velocity": "km/s",
                                "teff_val": "K", "teff_percentile_lower": "K", "teff_percentile_upper": "K",
+                               "teff_gspphot": "K", "teff_gspphot_lower": "K", "teff_gspphot_upper": "K",
                                "dist_parallax": "[pc]",
-                               "r_est": "[pc]", "r_lo": "[pc]", "r_hi": "[pc]", 'dist': '[pc]'}
+                               "r_est": "[pc]", "r_lo": "[pc]", "r_hi": "[pc]", 'dist': '[pc]',
+                               "distance_gspphot": "[pc]", "distance_gspphot_lower": "[pc]", "distance_gspphot_upper": "[pc]"}
         self.params_with_units = set(self.param_to_units.keys())
 
     def astroquery_get_job(self, job, dr_num=2):
@@ -303,6 +354,8 @@ class GaiaQuery:
             query_params = self.astro_query_dr1_params
         elif dr_num == 2:
             query_params = self.astro_query_dr2_params
+        elif dr_num == 3:
+            query_params = self.astro_query_dr3_params
         else:
             raise KeyError("The given Gaia Data Release number " + str(dr_num) + " is not of the format.")
 
