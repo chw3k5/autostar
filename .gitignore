@@ -163,3 +163,4 @@ cython_debug/
 *__pycache__*
 reference
 autostar/config/user.toml
+ref/
