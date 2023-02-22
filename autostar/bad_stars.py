@@ -1,14 +1,17 @@
 import os
 
-from autostar.config.datapaths import ref_dir, star_name_format, StringStarName
+from autostar.config.datapaths import ref_dir, star_name_format, StringStarName, sb_bad_star_name_ignore_filename
 from autostar.table_read import row_dict
 
 
 class BadStars:
     def __init__(self):
-        self.file_name = os.path.join(ref_dir, "bad_starname_ignore.csv")
-        self.name_data = row_dict(filename=self.file_name, key="star", delimiter=",", null_value="",
-                                  inner_key_remove=True)
+        self.file_name = sb_bad_star_name_ignore_filename
+        if os.path.exists(self.file_name):
+            self.name_data = row_dict(filename=self.file_name, key="star", delimiter=",", null_value="",
+                                      inner_key_remove=True)
+        else:
+            self.name_data = {}
         self.hypatia_names = set()
         self.simbad_names = set()
         self.reason_lists = {}

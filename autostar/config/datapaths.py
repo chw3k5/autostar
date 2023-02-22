@@ -48,6 +48,8 @@ user_config = toml.load(user_toml)
 
 # set the file paths for import in other files
 ref_dir = user_config['reference_data_dir']
+if not os.path.exists(ref_dir):
+    os.mkdir(ref_dir)
 
 sb_bad_star_name_ignore_filename = os.path.join(ref_dir, "bad_starname_ignore.csv")
 sb_main_ref_filename = os.path.join(ref_dir, user_config['sb_main_ref_filename'])
