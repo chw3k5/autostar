@@ -2,7 +2,7 @@ import os
 from collections import namedtuple
 
 
-print("Using the Default Start Names")
+print("Using the Default Star Names")
 # the directory the contains this file
 star_names_dir = os.path.dirname(os.path.realpath(__file__))
 # this is the default that is used if the default_star_names.py file is not found for a given installation
@@ -142,7 +142,7 @@ def multi_part_star_names_format(star_name_lower, name_key):
         # Check to see if the multipart star name is delimited by '+"
         if "+" in striped_name[1:]:
             striped_name = striped_name[0] + striped_name[1:].replace("+", " ")
-        # split the multi part star name.
+        # split the multipart star name.
         if " " in striped_name:
             string_vector = striped_name.split()
         else:
@@ -204,6 +204,8 @@ def string_star_name_format(star_name_lower, name_key):
     elif name_key == "ogle":
         if stripped_of_name_type[:2] == 'tr':
             stripped_of_name_type = stripped_of_name_type.replace("-", ' ')
+    elif name_key == "2mass" and stripped_of_name_type[0] != "j":
+        stripped_of_name_type = "j" + stripped_of_name_type
     return StarName(name_key, stripped_of_name_type)
 
 
