@@ -1,6 +1,7 @@
 import os
 import warnings
 import numpy as np
+from typing import Union, Tuple
 from time import sleep
 from collections import namedtuple, UserDict
 
@@ -239,7 +240,7 @@ class SimbadLib:
             for star_id in star_names_dict[name_type]:
                 self.reference_lookup[name_type][star_id] = hypatia_handle, star_names_dict
 
-    def get_star_dict(self, hypatia_name):
+    def get_star_dict(self, hypatia_name: Union[str, Tuple]):
         """
         :param hypatia_name:
         :return: hypatia_handle, star_names_dict
@@ -263,19 +264,19 @@ class SimbadLib:
             else:
                 # The data was not in the simbad reference csv file, we will try to get data from the Simbad website
                 self.simbad_query = SimbadQuery(verbose=self.verbose, go_fast=self.go_fast)
-                # a short cut to Case 4 for some star know to no have Simbad information
+                # a shortcut to Case 4 for some star know to no have Simbad information
                 if self.test_bad_stars or hypatia_name not in self.bad_stars.hypatia_names:
                     self.simbad_query.get_name_data(simbad_name_list=[StringStarName(hypatia_name).string_name])
                 if self.simbad_query.stars_found:
-                    # Case 3 we got new simbad data from the website
+                    # Case 3 we got new simbad data from the website.
                     # we need to save it and update the reference file
                     self.simbad_ref.add_star_dicts(star_dict_list=self.simbad_query.stars_found)
                     if self.verbose:
                         print("New reference data found for " + StringStarName(hypatia_name).string_name + ".")
-                    # with the reference data updated this should now exit Case 2
+                    # with the reference data updated, this should now exit Case 2
                     return self.get_star_dict(hypatia_name)
                 else:
-                    # Case 4 getting reference data from Simbad has failed
+                    # Case 4 getting reference data from Simbad has failed.
                     # is this a star we know about?
                     if hypatia_name in self.bad_stars.hypatia_names:
                         if self.verbose:
@@ -287,7 +288,7 @@ class SimbadLib:
                                       " was not found in the reference data!\n")
                     star_names_dict = StarDict()
                     star_names_dict[name_type] = star_id
-                    # update the lookup dicts for this class and the method will now exit at case 1
+                    # update the lookup dicts for this class, and the method will now exit at case 1
                     self.update_lookup(star_names_dict)
                     return self.get_star_dict(hypatia_name)
 

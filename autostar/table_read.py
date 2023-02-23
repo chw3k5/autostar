@@ -1,9 +1,9 @@
 """
-This file read-in file for data is tailored to replace the the "atpy" packages read-in functionally.
+This file read-in file for data is tailored to replace the "atpy" packages read-in functionally.
 
-1) However there are some differences: Comment lines denoted by a "#" are now saved to a 'comments' in a
+1) However, there are some differences: Comment lines denoted by a "#" are now saved to a 'comments' in a
    dictionary key or object attribute.
-2) All blank lines, or lines of only white space are ignored.
+2) All blank lines, or lines of only space are ignored.
 3) All numbers are by default converted to floats.
 4) Only columns that are all integers will be converted to integers, candidate integer items in columns of
    integers mixed with floats or strings will remain as floats.
@@ -23,7 +23,7 @@ def num_format(a_string):
 def get_table_data(filename, delimiter=',', remove_str=None):
     """
     Get Data and comments from a file.
-    returns a dictionary object contain any comments and the columns of data in a file.
+    Returns a dictionary object contain any comments and the columns of data in a file.
     The headers of the columns used as the dictionary key to access the column data in the dictionary.
     """
     # set defaults
@@ -43,9 +43,9 @@ def get_table_data(filename, delimiter=',', remove_str=None):
             Some files have header data the is commented out be the "#"
             First we will identify those lines and save them in a "comments" dictionary 
             """
-            # we can strip off the "#" and any white space or "\n" characters from the end of the comment
+            # we can strip off the "#" and any space or "\n" characters from the end of the comment
             comment_line = line.replace("#", "", 1).strip()
-            # we append to the the comments section of the dictionary
+            # we append to the comments section of the dictionary
             if comment_line != "":
                 table_dict["comments"].append(comment_line)
         elif not column_header_found:
@@ -64,12 +64,12 @@ def get_table_data(filename, delimiter=',', remove_str=None):
             """
             row_items = line.split(delimiter)
             for (index, row_item) in list(enumerate(row_items)):
-                # Get rid of white space, "\n", and "\r" characters
+                # Get rid of space, "\n", and "\r" characters
                 stripped_item = row_item.strip()
-                # get rid of another unwanted strings like quotes
+                # get rid of any other unwanted strings like quotes
                 if remove_str is not None:
                     stripped_item = stripped_item.replace(remove_str, '')
-                # if item is a number convert it to a float
+                # if item is a number, convert it to a float
                 processed_item = num_format(stripped_item)
                 # assign the item to the correct column name in tableDct
                 table_dict[column_names[index]].append(processed_item)
@@ -100,10 +100,10 @@ def row_dict(filename, key=None, delimiter=",", null_value=None, inner_key_remov
     from the column of data listed under the header denoted be the "key" parameter. The inner dictionary contains the
     row data, keys are the headers for that column of data.
 
-    :param filename: a string of the filename of the table to be read.
-    :param key: the row header of the row that will be the keys for the outer most dictionary. if key == None, a list
+    :param filename: string filename
+    :param key: the row header of the row that will be the keys for the outermost dictionary. if key == None, a list
                 of dictionaries is generated.
-    :param delimiter: the delimiter of the the data in the table being read in.
+    :param delimiter: the delimiter of the data in the table being read in.
     :param null_value: if this value is in the table, skip writing it to the dictionary.
     :return: a dictionary of dictionaries
     """
@@ -143,9 +143,8 @@ def row_dict(filename, key=None, delimiter=",", null_value=None, inner_key_remov
 class ClassyReader:
     """
     Use this class if you want to access your data as an attribute to a class obj and not a dictionary.
-    To see the attributes in which you data is stored, use the keys attribute.
-    One added functionally over the table dictionary definition above is the that the filename from which the data
-    is read, is also saved under the filename attribute.
+    To see the attributes in which the data are stored, use the 'keys' attribute.
+    One added functionally over the table dictionary definition above is that the 'filename' is saved at self.filename.
     """
     def __init__(self, filename, delimiter=",", remove_str=None):
         self.filename = filename
