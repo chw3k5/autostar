@@ -8,7 +8,7 @@ default_toml_path = os.path.join(config_dir, 'default.toml')
 # name_correction_path = os.path.join(config_dir, 'name_correction.psv')
 
 setup(name='autostar',
-      version='0.1.3',
+      version='0.1.4',
       description='Auto-updating datafiles from astronomy databases.',
       author='Caleb Wheeler',
       author_email='chw3k5@gmail.com',

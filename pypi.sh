@@ -12,3 +12,4 @@ python setup.py sdist --formats=gztar
 python -m twine upload --repository pypi dist/*
 # # PyPi installation
 # pip install autostar
+read -r -p "PyPi script complete Press any key to continue... "
