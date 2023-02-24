@@ -132,7 +132,7 @@ class AllExoPlanets:
         self.exo_host_names = set()
         non_host_names = set(raw_exo.keys) - {"pl_letter"}
         for index, star_name in list(enumerate(raw_exo.hostname)):
-            hypatia_handle = simbad_to_handle(patch_for_exo_org_name(star_name))
+            hypatia_handle, _star_names_dict = self.simbad_lib.get_star_dict(patch_for_exo_org_name(star_name))
             pl_letter = raw_exo.pl_letter[index]
             data_line_dict = {key: raw_exo.__getattribute__(key)[index] for key in non_host_names}
             if hypatia_handle in self.exo_host_names:
@@ -152,6 +152,8 @@ class AllExoPlanets:
 
     def refresh_ref(self):
         items_str = ",".join(self.requested_data_types)
+        # future work: upgraded to use new query standard:
+        # <https://exoplanetarchive.ipac.caltech.edu/docs/TAP/usingTAP.html>
         query_str = f'https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=select+{items_str}' +\
                     f'+from+ps&format=csv'
 
