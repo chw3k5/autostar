@@ -1,11 +1,24 @@
+Autostar has evolved into https://github.com/HypatiaOrg/HySite/tree/main/backend/hypatia/sources
+
+Autostar was too difficult to maintain as a gernallized tool that operted only with CSV files and Python that was both used by [SpExoDisks.com](spexodisks.com) and [HypatiaCatalog.com](hypatiacatalog.com). 
+Each orgainiation now maintains it own tooling, and its own database, [MySQL](https://www.mysql.com/) for SpExoDisks and [MongoDB](https://www.mongodb.com/) for HypatiaCatalog.
+We no long recommend wrting (CSV) files for intermidaiate database and processing steps, 
+we now write everything to a single database that can house all intermidiate and final data products.
+This greately simpliifes the number of systems to learn and maintain administrative operations.
+
+Read more in the SpExoDisks paper **Database Design for SpExoDisks: A Database & Web Portal for Spectra of Exoplanet-Forming Disks** [PASP](https://iopscience.iop.org/article/10.1088/1538-3873/ad917d), [arXiv](https://arxiv.org/abs/2411.13308)
+
+The Hypatia Codebase: https://github.com/HypatiaOrg/HySite
+The SpExoDisks Codebase: https://github.com/spexod/Portal
+
 ## Preface
 
 A group of functions written to query and record data from various 
 astronomical websites.
 
 It is meant to save the user's (and the queried website's) time by
-localing at the local library created from previous queries first 
-before querying the websites. 
+creating a local database and updating it with queries from other 
+astronomy websites/databases.
 
 This is an important step in making a script automatically updates any data.
 
